@@ -141,7 +141,7 @@ namespace DesktopStreamDownloader
             {
                 foreach (SearchHandler.VideoItem result in results)
                 {
-                    resultsGrid.Rows.Add(result.title, result.identifier, result.description, result.views);
+                    resultsGrid.Rows.Add(result.title, result.identifier, result.FormatPreview(), result.views);
                 }
             }
         }

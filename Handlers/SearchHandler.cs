@@ -15,7 +15,25 @@ namespace DesktopStreamDownloader
             public string title;
             public string description;
             public string identifier;
+            public string author;
+            public string published;
+            public string length;
             public Int64 views;
+
+            public string FormatPreview()
+            {
+                string preview = "Author: " + author + Environment.NewLine +
+                    "Published: " + published + Environment.NewLine +
+                    "Length: " + length + Environment.NewLine +
+                    "Views: " + views.ToString("N0");
+
+                if (description != null && description.Trim() != "")
+                {
+                    preview = preview + Environment.NewLine + Environment.NewLine + description.Trim();
+                }
+
+                return preview;
+            }
         }
 
         /// <summary>
@@ -53,7 +71,7 @@ namespace DesktopStreamDownloader
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = ytDlpPath,
-                Arguments = "-j --flat-playlist --no-warnings \"" + searchArg + "\"",
+                Arguments = "-j --flat-playlist --no-warnings --extractor-args \"youtubetab:approximate_date\" \"" + searchArg + "\"",
                 WorkingDirectory = Application.StartupPath,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -127,6 +145,12 @@ namespace DesktopStreamDownloader
                             continue;
                         }
 
+                        string liveStatus = TokenAsString(item["live_status"]);
+                        if (liveStatus == "is_live" || liveStatus == "is_upcoming")
+                        {
+                            continue;
+                        }
+
                         Int64 views = 0;
                         if (item["view_count"] != null && item["view_count"].Type != JTokenType.Null)
                         {
@@ -177,11 +201,11 @@ namespace DesktopStreamDownloader
                         {
                             title = TokenAsString(item["title"]),
                             identifier = identifier,
+                            author = author,
+                            published = published,
+                            length = lengthText,
                             views = views,
-                            description = "Author: " + author + Environment.NewLine +
-                                "Published: " + published + Environment.NewLine +
-                                "Length: " + lengthText + Environment.NewLine +
-                                "Views: " + views.ToString("N0")
+                            description = TokenAsString(item["description"]).Trim()
                         };
 
                         results.Add(result);
