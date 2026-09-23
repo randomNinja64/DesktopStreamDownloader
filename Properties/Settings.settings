@@ -11,8 +11,5 @@
     <Setting Name="InvidiousInstance" Type="System.String" Scope="User">
       <Value Profile="(Default)">http://iteroni.com</Value>
     </Setting>
-    <Setting Name="TLS12" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
   </Settings>
 </SettingsFile>

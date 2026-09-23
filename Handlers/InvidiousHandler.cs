@@ -1,11 +1,8 @@
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Management.Instrumentation;
 using System.Net;
 using System.Windows.Forms;
-using System.Xml.Linq;
 
 namespace DesktopStreamDownloader
 {
@@ -24,34 +21,6 @@ namespace DesktopStreamDownloader
         // Function to perform searches on Invidious
         public static List<VideoItem> Search(string query, int resultsNum)
         {
-            // If TLS12 is true, use TLS 1.2
-            if (Properties.Settings.Default.TLS12 == true)
-            {
-                try
-                {
-                    // Catch Protocol Not Supported Exceptions
-                    ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
-                }
-                catch (NotSupportedException)
-                {
-                    // Error out and disable TLS 1.2
-                    MessageBox.Show("Error 04: Your system does not appear to support TLS 1.2. As such, the protocol has been disabled. " +
-                        "Please try your search again. If you would like to use TLS 1.2, please install the appropriate updates for your system.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Properties.Settings.Default.TLS12 = false;
-                    Properties.Settings.Default.Save();
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    // Error out and show exception
-                    MessageBox.Show("Error 05: The following unhandled exception has occurred: " + ex.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            else // Else, use TLS 1.0
-            {
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType)192;
-            }
-
             // Ignore SSL Errors
             ServicePointManager.ServerCertificateValidationCallback += (send, certificate, chain, sslPolicyErrors) => { return true; };
 

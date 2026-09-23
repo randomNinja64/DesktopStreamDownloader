@@ -58,17 +58,5 @@ namespace DesktopStreamDownloader.Properties {
                 this["InvidiousInstance"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool TLS12 {
-            get {
-                return ((bool)(this["TLS12"]));
-            }
-            set {
-                this["TLS12"] = value;
-            }
-        }
     }
 }

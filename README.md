@@ -35,7 +35,6 @@ Options are available from the Options button on the Downloads tab:
 
 - **Default Quality** - Preferred download resolution to be passed into YT-DLP (`240p`, `360p`, `480p`, `720p`, or `1080p`; default `480p`)
 - **Invidious Instance** - Base URL of the Invidious instance used for search (default `http://iteroni.com`)
-- **TLS 1.2 (For Newer Instances)** - Enables TLS 1.2 when connecting to the Invidious instance (default off; useful for newer instances that require it)
 
 ## Credits
 

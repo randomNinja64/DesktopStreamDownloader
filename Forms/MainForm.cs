@@ -153,7 +153,7 @@ namespace DesktopStreamDownloader
                 // If URL is null, error out and break
                 if (URL == null)
                 {
-                    MessageBox.Show("Error 31: No MP4 files found for video.");
+                    MessageBox.Show("Error 11: No MP4 files found for video.");
                     return;
                 }
 
@@ -349,7 +349,7 @@ namespace DesktopStreamDownloader
             }
             catch
             {
-                MessageBox.Show("Error 31: Opening directory failed. Directory may not exist or permissions may be incorrect.");
+                MessageBox.Show("Error 12: Opening directory failed. Directory may not exist or permissions may be incorrect.");
             }
         }
 

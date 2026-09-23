@@ -33,8 +33,6 @@ namespace DesktopStreamDownloader
             this.instanceLbl = new System.Windows.Forms.Label();
             this.instanceTxtBox = new System.Windows.Forms.TextBox();
             this.okBtn = new System.Windows.Forms.Button();
-            this.tslLabel = new System.Windows.Forms.Label();
-            this.tlsToggle = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // qualityLbl
@@ -86,40 +84,19 @@ namespace DesktopStreamDownloader
             // 
             this.okBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.okBtn.Location = new System.Drawing.Point(12, 128);
+            this.okBtn.Location = new System.Drawing.Point(12, 98);
             this.okBtn.Name = "okBtn";
             this.okBtn.Size = new System.Drawing.Size(152, 23);
-            this.okBtn.TabIndex = 6;
+            this.okBtn.TabIndex = 4;
             this.okBtn.Text = "&Save";
             this.okBtn.UseVisualStyleBackColor = true;
             this.okBtn.Click += new System.EventHandler(this.okBtn_Click);
-            // 
-            // tslLabel
-            // 
-            this.tslLabel.AutoSize = true;
-            this.tslLabel.Location = new System.Drawing.Point(9, 88);
-            this.tslLabel.Name = "tslLabel";
-            this.tslLabel.Size = new System.Drawing.Size(155, 13);
-            this.tslLabel.TabIndex = 4;
-            this.tslLabel.Text = "&TLS 1.2 (For Newer Instances):";
-            // 
-            // tlsToggle
-            // 
-            this.tlsToggle.AutoSize = true;
-            this.tlsToggle.Location = new System.Drawing.Point(12, 104);
-            this.tlsToggle.Name = "tlsToggle";
-            this.tlsToggle.Size = new System.Drawing.Size(65, 17);
-            this.tlsToggle.TabIndex = 5;
-            this.tlsToggle.Text = "Enabled";
-            this.tlsToggle.UseVisualStyleBackColor = true;
             // 
             // OptionsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(176, 159);
-            this.Controls.Add(this.tlsToggle);
-            this.Controls.Add(this.tslLabel);
+            this.ClientSize = new System.Drawing.Size(176, 133);
             this.Controls.Add(this.okBtn);
             this.Controls.Add(this.instanceTxtBox);
             this.Controls.Add(this.instanceLbl);
@@ -145,7 +122,5 @@ namespace DesktopStreamDownloader
         private System.Windows.Forms.Label instanceLbl;
         private System.Windows.Forms.TextBox instanceTxtBox;
         private System.Windows.Forms.Button okBtn;
-        private System.Windows.Forms.Label tslLabel;
-        private System.Windows.Forms.CheckBox tlsToggle;
     }
 }
