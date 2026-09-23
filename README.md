@@ -2,7 +2,7 @@
 	<img src="Assets/DSD.ico" alt="DesktopStreamDownloader Icon" width="120" />
 </p>
 <h3 align="center">DesktopStreamDownloader</h3>
-<p align="center"><em>Invidious search + yt-dlp downloads for Windows XP+</em></p>
+<p align="center"><em>Invidious Client GUI for Windows XP+</em></p>
 
 ## About
 
