@@ -82,7 +82,7 @@ if not exist "%OUT%\Newtonsoft.Json.dll" (
 )
 echo.
 echo Building installer ...
-"%MAKENSIS%" /V2 /DPRODUCT_VERSION=1.0.0 "/DDIST_DIR=%OUT%" "/DSETUP_OUT=%SETUP%" "%ROOT%installer\InstallScript.nsi"
+"%MAKENSIS%" /V2 "/DDIST_DIR=%OUT%" "/DSETUP_OUT=%SETUP%" "%ROOT%installer\InstallScript.nsi"
 if errorlevel 1 (
   echo ERROR: NSIS installer build failed.
   exit /b 1
