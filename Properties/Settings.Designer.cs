@@ -46,17 +46,5 @@ namespace DesktopStreamDownloader.Properties {
                 this["DefaultQuality"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://iteroni.com")]
-        public string InvidiousInstance {
-            get {
-                return ((string)(this["InvidiousInstance"]));
-            }
-            set {
-                this["InvidiousInstance"] = value;
-            }
-        }
     }
 }

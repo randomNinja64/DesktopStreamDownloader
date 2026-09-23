@@ -82,7 +82,6 @@ namespace DesktopStreamDownloader
             this.searchTxtBox.Name = "searchTxtBox";
             this.searchTxtBox.Size = new System.Drawing.Size(544, 20);
             this.searchTxtBox.TabIndex = 1;
-            this.searchTxtBox.TextChanged += new System.EventHandler(this.searchTxtBox_TextChanged);
             this.searchTxtBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.searchTxtBox_KeyDown);
             // 
             // searchBtn
@@ -108,7 +107,6 @@ namespace DesktopStreamDownloader
             this.controlTabs.SelectedIndex = 0;
             this.controlTabs.Size = new System.Drawing.Size(721, 408);
             this.controlTabs.TabIndex = 5;
-            this.controlTabs.SelectedIndexChanged += new System.EventHandler(this.controlTabs_SelectedIndexChanged);
             // 
             // searchTab
             // 
@@ -123,7 +121,6 @@ namespace DesktopStreamDownloader
             this.searchTab.TabIndex = 0;
             this.searchTab.Text = "Search Results";
             this.searchTab.UseVisualStyleBackColor = true;
-            this.searchTab.Click += new System.EventHandler(this.searchTab_Click);
             // 
             // downloadButton
             // 
@@ -164,10 +161,8 @@ namespace DesktopStreamDownloader
             this.resultsGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.resultsGrid.Size = new System.Drawing.Size(499, 370);
             this.resultsGrid.TabIndex = 2;
-            this.resultsGrid.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.resultsGrid_CellContentClick);
             this.resultsGrid.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.resultsGrid_CellDoubleClick);
             this.resultsGrid.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.resultsGrid_RowEnter);
-            this.resultsGrid.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.resultsGrid_RowsRemoved);
             this.resultsGrid.KeyDown += new System.Windows.Forms.KeyEventHandler(this.resultsGrid_KeyDown);
             // 
             // resultName
@@ -210,7 +205,6 @@ namespace DesktopStreamDownloader
             this.resultDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.resultDescription.Size = new System.Drawing.Size(196, 221);
             this.resultDescription.TabIndex = 1;
-            this.resultDescription.TextChanged += new System.EventHandler(this.resultDescription_TextChanged);
             // 
             // resultPreview
             // 
@@ -239,7 +233,6 @@ namespace DesktopStreamDownloader
             this.downloadTab.TabIndex = 1;
             this.downloadTab.Text = "Downloads";
             this.downloadTab.UseVisualStyleBackColor = true;
-            this.downloadTab.Click += new System.EventHandler(this.downloadTab_Click);
             // 
             // openDownloadsBtn
             // 
@@ -304,7 +297,6 @@ namespace DesktopStreamDownloader
             this.downloadsDataGridView.Size = new System.Drawing.Size(701, 332);
             this.downloadsDataGridView.TabIndex = 6;
             this.downloadsDataGridView.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.downloadsDataGridView_RowEnter);
-            this.downloadsDataGridView.RowLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.downloadsDataGridView_RowLeave);
             this.downloadsDataGridView.SelectionChanged += new System.EventHandler(this.downloadsDataGridView_SelectionChanged);
             // 
             // DownloadUrl
@@ -372,7 +364,6 @@ namespace DesktopStreamDownloader
             this.dlDirTxtBox.Name = "dlDirTxtBox";
             this.dlDirTxtBox.Size = new System.Drawing.Size(342, 20);
             this.dlDirTxtBox.TabIndex = 1;
-            this.dlDirTxtBox.TextChanged += new System.EventHandler(this.dlDirTxtBox_TextChanged);
             // 
             // setDirBtn
             // 
@@ -408,19 +399,18 @@ namespace DesktopStreamDownloader
             this.pagesLbl.Size = new System.Drawing.Size(92, 13);
             this.pagesLbl.TabIndex = 3;
             this.pagesLbl.Text = "&Maximum Results:";
-            this.pagesLbl.Click += new System.EventHandler(this.pagesLbl_Click);
             // 
             // resultsNum
             // 
             this.resultsNum.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.resultsNum.Increment = new decimal(new int[] {
-            20,
+            this.resultsNum.Location = new System.Drawing.Point(644, 26);
+            this.resultsNum.Maximum = new decimal(new int[] {
+            200,
             0,
             0,
             0});
-            this.resultsNum.Location = new System.Drawing.Point(644, 26);
             this.resultsNum.Minimum = new decimal(new int[] {
-            20,
+            1,
             0,
             0,
             0});
@@ -432,7 +422,6 @@ namespace DesktopStreamDownloader
             0,
             0,
             0});
-            this.resultsNum.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
             // 
             // defaultStatusStrip
             // 

@@ -30,8 +30,6 @@ namespace DesktopStreamDownloader
         {
             this.qualityLbl = new System.Windows.Forms.Label();
             this.qualityComboBox = new System.Windows.Forms.ComboBox();
-            this.instanceLbl = new System.Windows.Forms.Label();
-            this.instanceTxtBox = new System.Windows.Forms.TextBox();
             this.okBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
@@ -61,45 +59,25 @@ namespace DesktopStreamDownloader
             this.qualityComboBox.Size = new System.Drawing.Size(152, 21);
             this.qualityComboBox.TabIndex = 1;
             // 
-            // instanceLbl
-            // 
-            this.instanceLbl.AutoSize = true;
-            this.instanceLbl.Location = new System.Drawing.Point(9, 49);
-            this.instanceLbl.Name = "instanceLbl";
-            this.instanceLbl.Size = new System.Drawing.Size(96, 13);
-            this.instanceLbl.TabIndex = 2;
-            this.instanceLbl.Text = "&Invidious Instance:";
-            // 
-            // instanceTxtBox
-            // 
-            this.instanceTxtBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.instanceTxtBox.Location = new System.Drawing.Point(12, 65);
-            this.instanceTxtBox.Name = "instanceTxtBox";
-            this.instanceTxtBox.Size = new System.Drawing.Size(152, 20);
-            this.instanceTxtBox.TabIndex = 3;
-            this.instanceTxtBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.instanceTxtBox_KeyDown);
-            // 
             // okBtn
             // 
             this.okBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.okBtn.Location = new System.Drawing.Point(12, 98);
+            this.okBtn.Location = new System.Drawing.Point(12, 58);
             this.okBtn.Name = "okBtn";
             this.okBtn.Size = new System.Drawing.Size(152, 23);
-            this.okBtn.TabIndex = 4;
+            this.okBtn.TabIndex = 2;
             this.okBtn.Text = "&Save";
             this.okBtn.UseVisualStyleBackColor = true;
             this.okBtn.Click += new System.EventHandler(this.okBtn_Click);
             // 
             // OptionsForm
             // 
+            this.AcceptButton = this.okBtn;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(176, 133);
+            this.ClientSize = new System.Drawing.Size(176, 93);
             this.Controls.Add(this.okBtn);
-            this.Controls.Add(this.instanceTxtBox);
-            this.Controls.Add(this.instanceLbl);
             this.Controls.Add(this.qualityComboBox);
             this.Controls.Add(this.qualityLbl);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -119,8 +97,6 @@ namespace DesktopStreamDownloader
 
         private System.Windows.Forms.Label qualityLbl;
         private System.Windows.Forms.ComboBox qualityComboBox;
-        private System.Windows.Forms.Label instanceLbl;
-        private System.Windows.Forms.TextBox instanceTxtBox;
         private System.Windows.Forms.Button okBtn;
     }
 }

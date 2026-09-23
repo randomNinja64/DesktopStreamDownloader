@@ -8,8 +8,5 @@
     <Setting Name="DefaultQuality" Type="System.String" Scope="User">
       <Value Profile="(Default)">480p</Value>
     </Setting>
-    <Setting Name="InvidiousInstance" Type="System.String" Scope="User">
-      <Value Profile="(Default)">http://iteroni.com</Value>
-    </Setting>
   </Settings>
 </SettingsFile>

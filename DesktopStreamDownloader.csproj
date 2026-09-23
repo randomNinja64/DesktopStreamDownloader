@@ -65,7 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Handlers\InvidiousHandler.cs" />
+    <Compile Include="Handlers\SearchHandler.cs" />
     <Compile Include="Handlers\Download.cs" />
     <Compile Include="Handlers\DownloadHandler.cs" />
     <Compile Include="Forms\MainForm.cs">

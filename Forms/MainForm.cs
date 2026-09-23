@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace DesktopStreamDownloader
 {
@@ -12,7 +12,12 @@ namespace DesktopStreamDownloader
     {
         // Create a new Download Handler
         DownloadHandler downloadHandler = new DownloadHandler();
-        
+
+        private BackgroundWorker searchWorker;
+        private BackgroundWorker thumbnailWorker;
+        private string currentThumbnailId = "";
+        private bool searchInProgress = false;
+
         static MainForm _frmObj;
         public static MainForm frmObj
         {
@@ -24,10 +29,6 @@ namespace DesktopStreamDownloader
         public MainForm()
         {
             InitializeComponent();
-        }
-
-        public void UpdateAfterDownload()
-        {
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -68,40 +69,88 @@ namespace DesktopStreamDownloader
 
         private void searchBtn_Click(object sender, EventArgs e)
         {
+            if (searchInProgress)
+            {
+                return;
+            }
+
             // Switch To Search Tab
             controlTabs.SelectedTab = searchTab;
 
             // Clear Search Results
             resultsGrid.Rows.Clear();
+            ClearPreviewImage();
+            currentThumbnailId = "";
 
             // Notify user that search is happening via info text box
             resultDescription.Text = "Grabbing Results. Please wait...";
 
-            // Perform Search With InvidiousHandler
-            List<InvidiousHandler.VideoItem> results = InvidiousHandler.Search(searchTxtBox.Text, Convert.ToInt32(resultsNum.Value));
+            string query = searchTxtBox.Text;
+            int count = Convert.ToInt32(resultsNum.Value);
 
-            // Set result description back to blank
+            SetSearchControlsEnabled(false);
+            searchInProgress = true;
+
+            searchWorker = new BackgroundWorker();
+            searchWorker.DoWork += searchWorker_DoWork;
+            searchWorker.RunWorkerCompleted += searchWorker_RunWorkerCompleted;
+            searchWorker.RunWorkerAsync(new object[] { query, count });
+        }
+
+        private void searchWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            object[] args = (object[])e.Argument;
+            string query = (string)args[0];
+            int count = (int)args[1];
+            string errorMessage;
+            List<SearchHandler.VideoItem> results = SearchHandler.Search(query, count, out errorMessage);
+            e.Result = new object[] { results, errorMessage };
+        }
+
+        private void searchWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            searchInProgress = false;
+            SetSearchControlsEnabled(true);
             resultDescription.Text = "";
 
-            // If results is null, break
-            if (results == null)
+            if (e.Error != null)
+            {
+                MessageBox.Show("Error 01: Error retrieving results. Please check your Internet connection or that yt-dlp is working correctly.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            object[] payload = e.Result as object[];
+            if (payload == null)
             {
                 return;
             }
 
-            // Add results to resultsGrid if results is not empty
+            List<SearchHandler.VideoItem> results = payload[0] as List<SearchHandler.VideoItem>;
+            string errorMessage = payload[1] as string;
+
+            if (results == null)
+            {
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                return;
+            }
+
             if (results.Count > 0)
             {
-                foreach (InvidiousHandler.VideoItem result in results)
+                foreach (SearchHandler.VideoItem result in results)
                 {
                     resultsGrid.Rows.Add(result.title, result.identifier, result.description, result.views);
                 }
             }
         }
 
-        private void searchTxtBox_TextChanged(object sender, EventArgs e)
+        private void SetSearchControlsEnabled(bool enabled)
         {
-
+            searchBtn.Enabled = enabled;
+            searchTxtBox.Enabled = enabled;
+            resultsNum.Enabled = enabled;
         }
 
         private void searchTxtBox_KeyDown(object sender, KeyEventArgs e)
@@ -124,8 +173,8 @@ namespace DesktopStreamDownloader
                 // Get identifier of selected item
                 string identifier = resultsGrid.Rows[e.RowIndex].Cells[1].Value.ToString();
 
-                // Download thumbnail
-                resultPreview.ImageLocation = InvidiousHandler.GetThumbnailUrl(identifier);
+                // Download thumbnail asynchronously via curl
+                BeginLoadThumbnail(identifier);
 
                 // If description text box is blank, set it to "No description found."
                 if (resultDescription.Text == "")
@@ -136,6 +185,66 @@ namespace DesktopStreamDownloader
             }
         }
 
+        private void BeginLoadThumbnail(string identifier)
+        {
+            currentThumbnailId = identifier;
+            ClearPreviewImage();
+
+            BackgroundWorker worker = new BackgroundWorker();
+            thumbnailWorker = worker;
+            worker.DoWork += thumbnailWorker_DoWork;
+            worker.RunWorkerCompleted += thumbnailWorker_RunWorkerCompleted;
+            worker.RunWorkerAsync(identifier);
+        }
+
+        private void thumbnailWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            string identifier = (string)e.Argument;
+            Image image = SearchHandler.LoadThumbnail(identifier);
+            e.Result = new object[] { identifier, image };
+        }
+
+        private void thumbnailWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Error != null || e.Result == null)
+            {
+                return;
+            }
+
+            object[] parts = (object[])e.Result;
+            string identifier = (string)parts[0];
+            Image image = parts[1] as Image;
+
+            if (identifier != currentThumbnailId)
+            {
+                if (image != null)
+                {
+                    image.Dispose();
+                }
+                return;
+            }
+
+            if (image == null)
+            {
+                ClearPreviewImage();
+                return;
+            }
+
+            ClearPreviewImage();
+            resultPreview.Image = image;
+        }
+
+        private void ClearPreviewImage()
+        {
+            if (resultPreview.Image != null)
+            {
+                Image old = resultPreview.Image;
+                resultPreview.Image = null;
+                old.Dispose();
+            }
+            resultPreview.ImageLocation = null;
+        }
+
         private void downloadButton_Click(object sender, EventArgs e)
         {
             //If an item is selected, Open DownloadForm and pass in the selected item's identifier
@@ -144,11 +253,7 @@ namespace DesktopStreamDownloader
                 // Create filename (video title + .mp4)
                 string filename = resultsGrid.SelectedRows[0].Cells[0].Value.ToString() + ".mp4";
 
-                // Enumerate items in Downloads tab before dialog
-                //int numDownloads = downloadHandler.Downloads.Count;
-
-                //MessageBox.Show(InvidiousHandler.GetVideoUrl(resultsGrid.SelectedRows[0].Cells[1].Value.ToString()));
-                Uri URL = new Uri(InvidiousHandler.GetVideoUrl(resultsGrid.SelectedRows[0].Cells[1].Value.ToString()));
+                Uri URL = new Uri("https://youtube.com/watch?v=" + resultsGrid.SelectedRows[0].Cells[1].Value.ToString());
 
                 // If URL is null, error out and break
                 if (URL == null)
@@ -161,13 +266,6 @@ namespace DesktopStreamDownloader
                 queueStatusLbl.Text = "Added " + resultsGrid.SelectedRows[0].Cells[0].Value.ToString() + " to queue.";
 
                 downloadHandler.addDownload(URL, filename, progressTimer);
-
-                // Change selected tab to downloads tab if items were downloaded
-                /*if (downloadHandler.Downloads.Count > numDownloads)
-                {
-                    controlTabs.SelectedTab = downloadTab;
-                }*/
-
             }
         }
 
@@ -178,15 +276,6 @@ namespace DesktopStreamDownloader
                 // Run resultsGridCellDoubleClick
                 resultsGrid_CellDoubleClick(this, new DataGridViewCellEventArgs(resultsGrid.CurrentCell.ColumnIndex, resultsGrid.CurrentCell.RowIndex));
             }
-        }
-
-        private void dlDirTxtBox_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void clrInactiveBtn_Click(object sender, EventArgs e)
-        {
         }
 
         private void setDirBtn_Click(object sender, EventArgs e)
@@ -220,10 +309,6 @@ namespace DesktopStreamDownloader
             {
                 return 1;
             }
-        }
-        private void searchTab_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -259,10 +344,6 @@ namespace DesktopStreamDownloader
             cancelDlButton.Enabled = true;
         }
 
-        private void downloadsDataGridView_RowLeave(object sender, DataGridViewCellEventArgs e)
-        {
-        }
-
         private void downloadsDataGridView_SelectionChanged(object sender, EventArgs e)
         {
             //If a row is selected, leave the cancel button enabled
@@ -296,16 +377,6 @@ namespace DesktopStreamDownloader
             optionsForm.ShowDialog();
         }
 
-        private void resultDescription_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void resultsGrid_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
         private void resultsGrid_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             // Do nothing if header clicked.
@@ -314,29 +385,6 @@ namespace DesktopStreamDownloader
 
             // Run the downloadBtn_Click event
             downloadButton_Click(this, new EventArgs());
-        }
-
-        private void pagesLbl_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
-        {
-            // If value is not a multiple of 20 from 20-100, set it to the next lowest value
-            if (resultsNum.Value % 20 != 0 && resultsNum.Value > 20 && resultsNum.Value < 100)
-            {
-                resultsNum.Value -= resultsNum.Value % 20;
-            }
-        }
-
-        private void resultsGrid_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
-        {
-        }
-
-        private void downloadTab_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void openDownloadsBtn_Click(object sender, EventArgs e)
@@ -351,11 +399,6 @@ namespace DesktopStreamDownloader
             {
                 MessageBox.Show("Error 12: Opening directory failed. Directory may not exist or permissions may be incorrect.");
             }
-        }
-
-        private void controlTabs_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }
