@@ -80,7 +80,6 @@ namespace DesktopStreamDownloader
             }
 
             string formattedOutput = ParseAndFormatOutput(YTDLOutput);
-            Console.WriteLine(YTDLOutput);
 
             // OutputDataReceived is not the UI thread; BindingList must be updated there.
             // Count is rechecked because cancel/completion may RemoveAt(0) first.
