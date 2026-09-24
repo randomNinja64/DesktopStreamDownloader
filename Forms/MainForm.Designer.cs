@@ -49,11 +49,7 @@ namespace DesktopStreamDownloader
             this.optionsBtn = new System.Windows.Forms.Button();
             this.cancelDlButton = new System.Windows.Forms.Button();
             this.downloadsDataGridView = new System.Windows.Forms.DataGridView();
-            this.DownloadUrl = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dlUrl = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.downloadIdentifier = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.fileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Running = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.DownloadProgress = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dlDirLabel = new System.Windows.Forms.Label();
             this.dlDirTxtBox = new System.Windows.Forms.TextBox();
@@ -280,13 +276,10 @@ namespace DesktopStreamDownloader
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.downloadsDataGridView.BackgroundColor = System.Drawing.SystemColors.Control;
+            this.downloadsDataGridView.AutoGenerateColumns = false;
             this.downloadsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.downloadsDataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.DownloadUrl,
-            this.dlUrl,
-            this.downloadIdentifier,
             this.fileName,
-            this.Running,
             this.DownloadProgress});
             this.downloadsDataGridView.Location = new System.Drawing.Point(6, 6);
             this.downloadsDataGridView.MultiSelect = false;
@@ -299,49 +292,17 @@ namespace DesktopStreamDownloader
             this.downloadsDataGridView.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.downloadsDataGridView_RowEnter);
             this.downloadsDataGridView.SelectionChanged += new System.EventHandler(this.downloadsDataGridView_SelectionChanged);
             // 
-            // DownloadUrl
-            // 
-            this.DownloadUrl.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.DownloadUrl.DataPropertyName = "FileName";
-            this.DownloadUrl.HeaderText = "File Name";
-            this.DownloadUrl.Name = "DownloadUrl";
-            this.DownloadUrl.ReadOnly = true;
-            // 
-            // dlUrl
-            // 
-            this.dlUrl.DataPropertyName = "downloadUrl";
-            this.dlUrl.HeaderText = "dlUrl";
-            this.dlUrl.Name = "dlUrl";
-            this.dlUrl.ReadOnly = true;
-            this.dlUrl.Visible = false;
-            // 
-            // downloadIdentifier
-            // 
-            this.downloadIdentifier.DataPropertyName = "downloadIdentifier";
-            this.downloadIdentifier.HeaderText = "downloadIdentifier";
-            this.downloadIdentifier.Name = "downloadIdentifier";
-            this.downloadIdentifier.ReadOnly = true;
-            this.downloadIdentifier.Visible = false;
-            // 
             // fileName
             // 
+            this.fileName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
             this.fileName.DataPropertyName = "fileName";
-            this.fileName.HeaderText = "fileName";
+            this.fileName.HeaderText = "File Name";
             this.fileName.Name = "fileName";
             this.fileName.ReadOnly = true;
-            this.fileName.Visible = false;
-            // 
-            // Running
-            // 
-            this.Running.DataPropertyName = "Running";
-            this.Running.HeaderText = "Running";
-            this.Running.Name = "Running";
-            this.Running.ReadOnly = true;
-            this.Running.Visible = false;
             // 
             // DownloadProgress
             // 
-            this.DownloadProgress.DataPropertyName = "DownloadProgress";
+            this.DownloadProgress.DataPropertyName = "downloadProgress";
             this.DownloadProgress.HeaderText = "Progress";
             this.DownloadProgress.Name = "DownloadProgress";
             this.DownloadProgress.ReadOnly = true;
@@ -495,11 +456,7 @@ namespace DesktopStreamDownloader
         private System.Windows.Forms.DataGridViewTextBoxColumn identifier;
         private System.Windows.Forms.DataGridViewTextBoxColumn description;
         private System.Windows.Forms.DataGridViewTextBoxColumn Views;
-        private System.Windows.Forms.DataGridViewTextBoxColumn DownloadUrl;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dlUrl;
-        private System.Windows.Forms.DataGridViewTextBoxColumn downloadIdentifier;
         private System.Windows.Forms.DataGridViewTextBoxColumn fileName;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn Running;
         private System.Windows.Forms.DataGridViewTextBoxColumn DownloadProgress;
         private System.Windows.Forms.Label keywordLbl;
         private System.Windows.Forms.Label pagesLbl;
