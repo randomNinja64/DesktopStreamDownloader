@@ -199,6 +199,23 @@ namespace DesktopStreamDownloader
             }
         }
 
+        public void AbortActiveForExit()
+        {
+            if (Downloads.Count == 0)
+            {
+                return;
+            }
+
+            if (_ytDlpError != null)
+            {
+                _ytDlpError.Length = 0;
+            }
+
+            Download active = Downloads[0];
+            Downloads.Clear();
+            Abort(active);
+        }
+
         // Function to abort download
         public void Abort(Download downloadToAbort)
         {

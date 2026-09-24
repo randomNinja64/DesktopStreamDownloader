@@ -385,6 +385,8 @@ namespace DesktopStreamDownloader
                     e.Cancel = true;
                     return;
                 }
+
+                downloadHandler.AbortActiveForExit();
             }
 
             SearchHandler.CancelThumbnail();
