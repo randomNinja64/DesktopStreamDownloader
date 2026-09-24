@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -12,6 +13,7 @@ namespace DesktopStreamDownloader
         MainForm frm = MainForm.frmObj;
         public BindingList<Download> Downloads;
         private Process _activeYtDlpProcess;
+        private StringBuilder _ytDlpError;
 
         // Constructor
         public DownloadHandler()
@@ -61,15 +63,19 @@ namespace DesktopStreamDownloader
             youtubedlprocess.StartInfo.WorkingDirectory = Application.StartupPath;
             youtubedlprocess.StartInfo.UseShellExecute = false;
             youtubedlprocess.StartInfo.RedirectStandardOutput = true;
+            youtubedlprocess.StartInfo.RedirectStandardError = true;
             youtubedlprocess.StartInfo.CreateNoWindow = true;
             youtubedlprocess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             youtubedlprocess.EnableRaisingEvents = true;
             youtubedlprocess.OutputDataReceived += (sender, e) => updateDLProgress(e.Data);
+            youtubedlprocess.ErrorDataReceived += (sender, e) => AppendYtDlpError(e.Data);
 
+            _ytDlpError = new StringBuilder();
 
             youtubedlprocess.Start();
             _activeYtDlpProcess = youtubedlprocess;
             youtubedlprocess.BeginOutputReadLine();
+            youtubedlprocess.BeginErrorReadLine();
             // Async event handler for when process exits
             youtubedlprocess.Exited += (sender, e) => OnDownloadCompleted();
         }
@@ -123,9 +129,32 @@ namespace DesktopStreamDownloader
             return "Preparing...";
         }
 
+        private void AppendYtDlpError(string line)
+        {
+            if (line != null && _ytDlpError != null)
+            {
+                _ytDlpError.AppendLine(line);
+            }
+        }
+
         // The event that will fire whenever the progress of the WebClient is completed
         private void OnDownloadCompleted()
         {
+            int exitCode = 0;
+            string errorText = _ytDlpError == null ? "" : _ytDlpError.ToString().Trim();
+            string failedName = Downloads.Count > 0 ? Downloads[0].fileName : "download";
+
+            try
+            {
+                if (_activeYtDlpProcess != null && _activeYtDlpProcess.HasExited)
+                {
+                    exitCode = _activeYtDlpProcess.ExitCode;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
             ClearActiveYtDlpProcess();
 
             if (Application.OpenForms.Count == 0)
@@ -136,6 +165,15 @@ namespace DesktopStreamDownloader
             // Remove finished item and start next (or stop timer) on the UI thread.
             Action advance = () =>
             {
+                if (exitCode != 0 && errorText != "")
+                {
+                    if (errorText.Length > 800)
+                    {
+                        errorText = errorText.Substring(errorText.Length - 800);
+                    }
+                    MessageBox.Show(errorText, "Download failed: " + failedName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
                 if (Downloads.Count > 0)
                 {
                     Downloads.RemoveAt(0);
