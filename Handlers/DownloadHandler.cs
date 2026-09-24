@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace DesktopStreamDownloader
@@ -77,6 +76,12 @@ namespace DesktopStreamDownloader
 
         public void updateDLProgress(string YTDLOutput)
         {
+            // OutputDataReceived can fire after cancel/completion RemoveAt(0).
+            if (Downloads.Count == 0 || YTDLOutput == null)
+            {
+                return;
+            }
+
             string formattedOutput = ParseAndFormatOutput(YTDLOutput);
             Downloads[0].downloadProgress = formattedOutput;
             Console.WriteLine(YTDLOutput);
@@ -105,57 +110,37 @@ namespace DesktopStreamDownloader
         {
             ClearActiveYtDlpProcess();
 
-            // Messagebox to show download count
-            //MessageBox.Show("Downloads remaining in queue: " + Downloads.Count);
-
-            //Downloads.RemoveAt(0);
-            if (Downloads.Count > 0)
+            if (Application.OpenForms.Count == 0)
             {
-                // Messagebox, attempting to remove a download
-                //MessageBox.Show("Attempting to remove a download");
+                return;
+            }
 
-                // Workaround for when form is closing
-                // If no forms are open, return
-                if (Application.OpenForms.Count == 0)
-                {
-                    return;
-                }
-
-                // Check if the current thread is the UI thread
-                if (Application.OpenForms[0].InvokeRequired)
-                {
-                    // Use BeginInvoke to execute the downloadItem method on the UI thread
-                    Application.OpenForms[0].BeginInvoke(new Action(() => Downloads.RemoveAt(0)));
-
-                    // Wait for the above line to finish
-                    Thread.Sleep(100);
-
-                    // If there are still more downloads in the queue, start the next one
-                    if (Downloads.Count > 0)
-                    {
-                        Application.OpenForms[0].BeginInvoke(new Action(() => downloadItem(Downloads[0], Properties.Settings.Default.DownloadPath)));
-                    }
-
-                    // If there are no more downloads in the queue, stop the timer
-                    else
-                    {
-                        MainForm.frmObj.progressTimer.Stop();
-                    }
-                }
-                else
+            // Remove finished item and start next (or stop timer) on the UI thread.
+            Action advance = () =>
+            {
+                if (Downloads.Count > 0)
                 {
                     Downloads.RemoveAt(0);
-                    // If there are still more downloads in the queue, start the next one
-                    if (Downloads.Count > 0)
-                    {
-                        downloadItem(Downloads[0], Properties.Settings.Default.DownloadPath);
-                    }
                 }
+
+                if (Downloads.Count > 0)
+                {
+                    downloadItem(Downloads[0], Properties.Settings.Default.DownloadPath);
+                }
+                else if (MainForm.frmObj != null)
+                {
+                    MainForm.frmObj.progressTimer.Stop();
+                }
+            };
+
+            Form form = Application.OpenForms[0];
+            if (form.InvokeRequired)
+            {
+                form.BeginInvoke(advance);
             }
             else
             {
-                // Stop the timer
-                MainForm.frmObj.progressTimer.Stop();
+                advance();
             }
         }
 
@@ -179,7 +164,7 @@ namespace DesktopStreamDownloader
                 // Process could not be terminated
             }
 
-            string filePath = Properties.Settings.Default.DownloadPath + downloadToAbort.fileName;
+            string filePath = Path.Combine(Properties.Settings.Default.DownloadPath, downloadToAbort.fileName);
 
             try
             {

@@ -324,18 +324,22 @@ namespace DesktopStreamDownloader
                 cancelDlButton.Enabled = false;
                 return;
             }
-            
-            // If a download is running, abort it and delete the file
-            if (downloadHandler.Downloads.Count > 0)
+
+            int index = downloadsDataGridView.SelectedRows[0].Index;
+            if (index < 0 || index >= downloadHandler.Downloads.Count)
             {
-                if (downloadsDataGridView.SelectedRows[0].Index > 0 && downloadsDataGridView.SelectedRows[0].Index < downloadsDataGridView.Rows.Count)
-                {
-                    downloadHandler.removeDownloadAtIndex(downloadsDataGridView.SelectedRows[0].Index);
-                } else
-                {
-                    MessageBox.Show("ABUIOHDFSA");
-                    downloadHandler.Abort(downloadHandler.Downloads[downloadsDataGridView.SelectedRows[0].Index]);
-                }
+                return;
+            }
+
+            // Index 0 is active: Kill yt-dlp; Exited → OnDownloadCompleted removes it and starts the next.
+            // Index > 0 is queued only: remove from the list.
+            if (index == 0)
+            {
+                downloadHandler.Abort(downloadHandler.Downloads[0]);
+            }
+            else
+            {
+                downloadHandler.removeDownloadAtIndex(index);
             }
         }
 
