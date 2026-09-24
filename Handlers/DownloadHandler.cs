@@ -10,14 +10,15 @@ namespace DesktopStreamDownloader
 {
     public class DownloadHandler
     {
-        MainForm frm = MainForm.frmObj;
+        MainForm frm;
         public BindingList<Download> Downloads;
         private Process _activeYtDlpProcess;
         private StringBuilder _ytDlpError;
 
         // Constructor
-        public DownloadHandler()
+        public DownloadHandler(MainForm form)
         {
+            frm = form;
             this.Downloads = new BindingList<Download>();
         }
 
@@ -45,14 +46,6 @@ namespace DesktopStreamDownloader
 
             // Create destination directory
             Directory.CreateDirectory(destination);
-
-            // Download file
-            //downloadItem.WebClient.DownloadFileAsync(downloadItem.downloadUrl, destination + "\\" + downloadItem.fileName);
-
-            // Add Event Handlers For Progress and Completion
-            //downloadItem.WebClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(webClient_DownloadProgressChanged);
-            // Create async event handler for completion and pass current download into it
-            //downloadItem.WebClient.DownloadFileCompleted += (sender, e) => webClient_DownloadFileCompleted(sender, e, downloadItem);
 
             string res = Properties.Settings.Default.DefaultQuality.Substring(0, Properties.Settings.Default.DefaultQuality.Length - 1); ;
 
@@ -136,7 +129,6 @@ namespace DesktopStreamDownloader
             }
         }
 
-        // The event that will fire whenever the progress of the WebClient is completed
         private void OnDownloadCompleted()
         {
             int exitCode = 0;
@@ -172,9 +164,9 @@ namespace DesktopStreamDownloader
                     }
                     MessageBox.Show(errorText, "Download failed: " + failedName, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                else if (exitCode == 0 && MainForm.frmObj != null)
+                else if (exitCode == 0)
                 {
-                    MainForm.frmObj.queueStatusLbl.Text = "Completed " + failedName + ".";
+                    frm.queueStatusLbl.Text = "Completed " + failedName + ".";
                 }
 
                 if (Downloads.Count > 0)

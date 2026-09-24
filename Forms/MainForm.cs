@@ -10,8 +10,7 @@ namespace DesktopStreamDownloader
 
     public partial class MainForm : Form
     {
-        // Create a new Download Handler
-        DownloadHandler downloadHandler = new DownloadHandler();
+        DownloadHandler downloadHandler;
 
         private BackgroundWorker searchWorker;
         private BackgroundWorker thumbnailWorker;
@@ -19,24 +18,14 @@ namespace DesktopStreamDownloader
         private bool searchInProgress = false;
         private Dictionary<string, Image> thumbnailCache = new Dictionary<string, Image>();
 
-        static MainForm _frmObj;
-        public static MainForm frmObj
-        {
-            get { return _frmObj; }
-            set { _frmObj = value; }
-        }
-
-
         public MainForm()
         {
             InitializeComponent();
+            downloadHandler = new DownloadHandler(this);
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // Set the form object
-            frmObj = this;
-
             // If a download path hasn't been set, prompt the user for one
             if (Properties.Settings.Default.DownloadPath == "")
             {
