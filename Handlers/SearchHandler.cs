@@ -86,6 +86,8 @@ namespace DesktopStreamDownloader
             {
                 using (Process process = Process.Start(startInfo))
                 {
+                    process.ErrorDataReceived += delegate { };
+                    process.BeginErrorReadLine();
                     stdout = process.StandardOutput.ReadToEnd();
                     process.WaitForExit();
                     exitCode = process.ExitCode;
