@@ -76,15 +76,33 @@ namespace DesktopStreamDownloader
 
         public void updateDLProgress(string YTDLOutput)
         {
-            // OutputDataReceived can fire after cancel/completion RemoveAt(0).
-            if (Downloads.Count == 0 || YTDLOutput == null)
+            if (YTDLOutput == null || Application.OpenForms.Count == 0)
             {
                 return;
             }
 
             string formattedOutput = ParseAndFormatOutput(YTDLOutput);
-            Downloads[0].downloadProgress = formattedOutput;
             Console.WriteLine(YTDLOutput);
+
+            // OutputDataReceived is not the UI thread; BindingList must be updated there.
+            // Count is rechecked because cancel/completion may RemoveAt(0) first.
+            Action apply = () =>
+            {
+                if (Downloads.Count > 0)
+                {
+                    Downloads[0].downloadProgress = formattedOutput;
+                }
+            };
+
+            Form form = Application.OpenForms[0];
+            if (form.InvokeRequired)
+            {
+                form.BeginInvoke(apply);
+            }
+            else
+            {
+                apply();
+            }
         }
 
         private string ParseAndFormatOutput(string output)
