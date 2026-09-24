@@ -22,7 +22,7 @@ namespace DesktopStreamDownloader
         }
 
         // Function to Add Download
-        public void addDownload(Uri downloadUrl, string fileName, System.Windows.Forms.Timer progressTimer)
+        public void addDownload(Uri downloadUrl, string fileName)
         {
             // Correct filename, removing any invalid characters for Windows, replacing them with -
             foreach (char c in Path.GetInvalidFileNameChars())
@@ -32,10 +32,9 @@ namespace DesktopStreamDownloader
 
             Downloads.Add(new Download(downloadUrl, fileName));
 
-            // If progress timer isn't running, start it and start the first download
-            if (!progressTimer.Enabled)
+            // First item starts immediately. Later items wait until the active one finishes.
+            if (Downloads.Count == 1)
             {
-                progressTimer.Start();
                 downloadItem(Downloads[0], Properties.Settings.Default.DownloadPath);
             }
         }
@@ -162,7 +161,7 @@ namespace DesktopStreamDownloader
                 return;
             }
 
-            // Remove finished item and start next (or stop timer) on the UI thread.
+            // Remove finished item and start the next one on the UI thread.
             Action advance = () =>
             {
                 if (exitCode != 0 && errorText != "")
@@ -173,6 +172,10 @@ namespace DesktopStreamDownloader
                     }
                     MessageBox.Show(errorText, "Download failed: " + failedName, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                else if (exitCode == 0 && MainForm.frmObj != null)
+                {
+                    MainForm.frmObj.queueStatusLbl.Text = "Completed " + failedName + ".";
+                }
 
                 if (Downloads.Count > 0)
                 {
@@ -182,10 +185,6 @@ namespace DesktopStreamDownloader
                 if (Downloads.Count > 0)
                 {
                     downloadItem(Downloads[0], Properties.Settings.Default.DownloadPath);
-                }
-                else if (MainForm.frmObj != null)
-                {
-                    MainForm.frmObj.progressTimer.Stop();
                 }
             };
 

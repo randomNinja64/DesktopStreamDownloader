@@ -17,6 +17,7 @@ namespace DesktopStreamDownloader
         private BackgroundWorker thumbnailWorker;
         private string currentThumbnailId = "";
         private bool searchInProgress = false;
+        private Dictionary<string, Image> thumbnailCache = new Dictionary<string, Image>();
 
         static MainForm _frmObj;
         public static MainForm frmObj
@@ -79,8 +80,9 @@ namespace DesktopStreamDownloader
 
             // Clear Search Results
             resultsGrid.Rows.Clear();
-            ClearPreviewImage();
             currentThumbnailId = "";
+            SearchHandler.CancelThumbnail();
+            ClearThumbnailCache();
 
             // Notify user that search is happening via info text box
             resultDescription.Text = "Grabbing Results. Please wait...";
@@ -188,7 +190,16 @@ namespace DesktopStreamDownloader
         private void BeginLoadThumbnail(string identifier)
         {
             currentThumbnailId = identifier;
-            ClearPreviewImage();
+
+            Image cached;
+            if (thumbnailCache.TryGetValue(identifier, out cached))
+            {
+                resultPreview.Image = cached;
+                return;
+            }
+
+            resultPreview.Image = null;
+            resultPreview.ImageLocation = null;
 
             BackgroundWorker worker = new BackgroundWorker();
             thumbnailWorker = worker;
@@ -215,34 +226,41 @@ namespace DesktopStreamDownloader
             string identifier = (string)parts[0];
             Image image = parts[1] as Image;
 
+            if (image != null && !thumbnailCache.ContainsKey(identifier))
+            {
+                thumbnailCache[identifier] = image;
+            }
+            else if (image != null)
+            {
+                image.Dispose();
+            }
+
             if (identifier != currentThumbnailId)
             {
-                if (image != null)
-                {
-                    image.Dispose();
-                }
                 return;
             }
 
-            if (image == null)
+            Image shown;
+            if (thumbnailCache.TryGetValue(identifier, out shown))
             {
-                ClearPreviewImage();
-                return;
+                resultPreview.Image = shown;
             }
-
-            ClearPreviewImage();
-            resultPreview.Image = image;
+            else
+            {
+                resultPreview.Image = null;
+                resultPreview.ImageLocation = null;
+            }
         }
 
-        private void ClearPreviewImage()
+        private void ClearThumbnailCache()
         {
-            if (resultPreview.Image != null)
-            {
-                Image old = resultPreview.Image;
-                resultPreview.Image = null;
-                old.Dispose();
-            }
+            resultPreview.Image = null;
             resultPreview.ImageLocation = null;
+            foreach (Image image in thumbnailCache.Values)
+            {
+                image.Dispose();
+            }
+            thumbnailCache.Clear();
         }
 
         private void downloadButton_Click(object sender, EventArgs e)
@@ -265,7 +283,7 @@ namespace DesktopStreamDownloader
                 // Set status label to indicate item added to queue
                 queueStatusLbl.Text = "Added " + resultsGrid.SelectedRows[0].Cells[0].Value.ToString() + " to queue.";
 
-                downloadHandler.addDownload(URL, filename, progressTimer);
+                downloadHandler.addDownload(URL, filename);
             }
         }
 
@@ -309,11 +327,6 @@ namespace DesktopStreamDownloader
             {
                 return 1;
             }
-        }
-
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            downloadsDataGridView.Refresh();
         }
 
         private void cancelDlButton_Click(object sender, EventArgs e)
@@ -370,8 +383,12 @@ namespace DesktopStreamDownloader
                 if (result == DialogResult.No)
                 {
                     e.Cancel = true;
+                    return;
                 }
             }
+
+            SearchHandler.CancelThumbnail();
+            ClearThumbnailCache();
         }
 
         private void optionsBtn_Click(object sender, EventArgs e)

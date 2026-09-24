@@ -227,6 +227,20 @@ namespace DesktopStreamDownloader
             return results;
         }
 
+        private static Process thumbnailProcess;
+        private static readonly object thumbnailLock = new object();
+
+        public static void CancelThumbnail()
+        {
+            Process previous;
+            lock (thumbnailLock)
+            {
+                previous = thumbnailProcess;
+                thumbnailProcess = null;
+            }
+            KillProcess(previous);
+        }
+
         public static Image LoadThumbnail(string identifier)
         {
             if (identifier == null || identifier == "")
@@ -260,9 +274,18 @@ namespace DesktopStreamDownloader
                 WindowStyle = ProcessWindowStyle.Hidden
             };
 
+            Process process = null;
             try
             {
-                using (Process process = Process.Start(startInfo))
+                process = Process.Start(startInfo);
+                Process previous;
+                lock (thumbnailLock)
+                {
+                    previous = thumbnailProcess;
+                    thumbnailProcess = process;
+                }
+                KillProcess(previous);
+
                 using (MemoryStream ms = new MemoryStream())
                 {
                     CopyStream(process.StandardOutput.BaseStream, ms);
@@ -283,6 +306,34 @@ namespace DesktopStreamDownloader
             catch
             {
                 return null;
+            }
+            finally
+            {
+                if (process != null)
+                {
+                    lock (thumbnailLock)
+                    {
+                        if (thumbnailProcess == process)
+                        {
+                            thumbnailProcess = null;
+                        }
+                    }
+                    process.Dispose();
+                }
+            }
+        }
+
+        private static void KillProcess(Process process)
+        {
+            try
+            {
+                if (process != null)
+                {
+                    process.Kill();
+                }
+            }
+            catch
+            {
             }
         }
 

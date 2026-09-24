@@ -54,7 +54,6 @@ namespace DesktopStreamDownloader
             this.dlDirLabel = new System.Windows.Forms.Label();
             this.dlDirTxtBox = new System.Windows.Forms.TextBox();
             this.setDirBtn = new System.Windows.Forms.Button();
-            this.progressTimer = new System.Windows.Forms.Timer(this.components);
             this.keywordLbl = new System.Windows.Forms.Label();
             this.pagesLbl = new System.Windows.Forms.Label();
             this.resultsNum = new System.Windows.Forms.NumericUpDown();
@@ -337,11 +336,6 @@ namespace DesktopStreamDownloader
             this.setDirBtn.UseVisualStyleBackColor = true;
             this.setDirBtn.Click += new System.EventHandler(this.setDirBtn_Click);
             // 
-            // progressTimer
-            // 
-            this.progressTimer.Interval = 500;
-            this.progressTimer.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
             // keywordLbl
             // 
             this.keywordLbl.AutoSize = true;
@@ -449,7 +443,6 @@ namespace DesktopStreamDownloader
         private System.Windows.Forms.Label dlDirLabel;
         private System.Windows.Forms.TextBox dlDirTxtBox;
         public System.Windows.Forms.DataGridView downloadsDataGridView;
-        public System.Windows.Forms.Timer progressTimer;
         private System.Windows.Forms.Button cancelDlButton;
         private System.Windows.Forms.Button optionsBtn;
         private System.Windows.Forms.DataGridViewTextBoxColumn resultName;
@@ -462,7 +455,7 @@ namespace DesktopStreamDownloader
         private System.Windows.Forms.Label pagesLbl;
         private System.Windows.Forms.NumericUpDown resultsNum;
         private System.Windows.Forms.StatusStrip defaultStatusStrip;
-        private System.Windows.Forms.ToolStripStatusLabel queueStatusLbl;
+        internal System.Windows.Forms.ToolStripStatusLabel queueStatusLbl;
         private System.Windows.Forms.Button openDownloadsBtn;
     }
 }
