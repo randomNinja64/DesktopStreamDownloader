@@ -10,6 +10,8 @@ namespace DesktopStreamDownloader
 {
     public class DownloadHandler
     {
+        private static readonly Regex progressRegex = new Regex(@"(\d{1,3}\.\d{1,2})%");
+
         MainForm frm;
         public BindingList<Download> Downloads;
         private Process _activeYtDlpProcess;
@@ -106,8 +108,7 @@ namespace DesktopStreamDownloader
         {
             if (output != null)
             {
-                // Regex to extract the percentage from the output string
-                var match = Regex.Match(output, @"(\d{1,3}\.\d{1,2})%");
+                Match match = progressRegex.Match(output);
 
                 if (match.Success)
                 {

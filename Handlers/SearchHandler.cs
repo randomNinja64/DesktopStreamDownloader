@@ -100,6 +100,7 @@ namespace DesktopStreamDownloader
             }
 
             List<VideoItem> results = new List<VideoItem>();
+            HashSet<string> seenIds = new HashSet<string>();
 
             if (string.IsNullOrEmpty(stdout))
             {
@@ -133,16 +134,7 @@ namespace DesktopStreamDownloader
                             continue;
                         }
 
-                        bool exists = false;
-                        foreach (VideoItem existingItem in results)
-                        {
-                            if (existingItem.identifier == identifier)
-                            {
-                                exists = true;
-                                break;
-                            }
-                        }
-                        if (exists)
+                        if (seenIds.Contains(identifier))
                         {
                             continue;
                         }
@@ -211,6 +203,7 @@ namespace DesktopStreamDownloader
                         };
 
                         results.Add(result);
+                        seenIds.Add(identifier);
                     }
                 }
             }
