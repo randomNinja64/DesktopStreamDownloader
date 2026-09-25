@@ -132,7 +132,7 @@ namespace DesktopStreamDownloader
             {
                 foreach (SearchHandler.VideoItem result in results)
                 {
-                    resultsGrid.Rows.Add(result.title, result.identifier, result.FormatPreview(), result.views);
+                    resultsGrid.Rows.Add(result.title, result.identifier, result.FormatPreview(), result.length, result.views, result.published);
                 }
             }
         }
@@ -152,6 +152,59 @@ namespace DesktopStreamDownloader
                 e.SuppressKeyPress = true;
                 searchBtn_Click(this, new EventArgs());
             }
+        }
+
+        private void resultsGrid_SortCompare(object sender, DataGridViewSortCompareEventArgs e)
+        {
+            if (e.Column == resultLength)
+            {
+                e.SortResult = LengthToSeconds(e.CellValue1).CompareTo(LengthToSeconds(e.CellValue2));
+                e.Handled = true;
+            }
+            else if (e.Column == resultDate)
+            {
+                e.SortResult = CompareResultDates(e.CellValue1, e.CellValue2);
+                e.Handled = true;
+            }
+        }
+
+        private static int LengthToSeconds(object value)
+        {
+            string text = value as string;
+            if (string.IsNullOrEmpty(text) || text == "Unknown")
+            {
+                return int.MaxValue;
+            }
+
+            string[] parts = text.Split(':');
+            int seconds = 0;
+            for (int i = 0; i < parts.Length; i++)
+            {
+                int part;
+                if (!int.TryParse(parts[i], out part))
+                {
+                    return int.MaxValue;
+                }
+                seconds = (seconds * 60) + part;
+            }
+            return seconds;
+        }
+
+        private static int CompareResultDates(object left, object right)
+        {
+            string leftText = left as string;
+            string rightText = right as string;
+            bool leftKnown = !string.IsNullOrEmpty(leftText) && leftText != "Unknown";
+            bool rightKnown = !string.IsNullOrEmpty(rightText) && rightText != "Unknown";
+            if (leftKnown && rightKnown)
+            {
+                return string.Compare(leftText, rightText, StringComparison.Ordinal);
+            }
+            if (leftKnown == rightKnown)
+            {
+                return 0;
+            }
+            return leftKnown ? -1 : 1;
         }
 
         private void resultsGrid_RowEnter(object sender, DataGridViewCellEventArgs e)

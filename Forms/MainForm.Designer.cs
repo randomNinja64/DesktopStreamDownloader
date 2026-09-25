@@ -41,7 +41,9 @@ namespace DesktopStreamDownloader
             this.resultName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.identifier = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.description = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.resultLength = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Views = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.resultDate = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.resultDescription = new System.Windows.Forms.TextBox();
             this.resultPreview = new System.Windows.Forms.PictureBox();
             this.downloadTab = new System.Windows.Forms.TabPage();
@@ -147,7 +149,9 @@ namespace DesktopStreamDownloader
             this.resultName,
             this.identifier,
             this.description,
-            this.Views});
+            this.resultLength,
+            this.Views,
+            this.resultDate});
             this.resultsGrid.Location = new System.Drawing.Point(6, 6);
             this.resultsGrid.MultiSelect = false;
             this.resultsGrid.Name = "resultsGrid";
@@ -159,6 +163,7 @@ namespace DesktopStreamDownloader
             this.resultsGrid.TabIndex = 2;
             this.resultsGrid.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.resultsGrid_CellDoubleClick);
             this.resultsGrid.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.resultsGrid_RowEnter);
+            this.resultsGrid.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.resultsGrid_SortCompare);
             this.resultsGrid.KeyDown += new System.Windows.Forms.KeyEventHandler(this.resultsGrid_KeyDown);
             // 
             // resultName
@@ -183,11 +188,28 @@ namespace DesktopStreamDownloader
             this.description.ReadOnly = true;
             this.description.Visible = false;
             // 
+            // resultLength
+            // 
+            this.resultLength.HeaderText = "Length";
+            this.resultLength.Name = "resultLength";
+            this.resultLength.ReadOnly = true;
+            this.resultLength.Width = 72;
+            // 
             // Views
             // 
             this.Views.HeaderText = "Views";
             this.Views.Name = "Views";
             this.Views.ReadOnly = true;
+            this.Views.ValueType = typeof(long);
+            this.Views.DefaultCellStyle.Format = "N0";
+            this.Views.Width = 90;
+            // 
+            // resultDate
+            // 
+            this.resultDate.HeaderText = "Date";
+            this.resultDate.Name = "resultDate";
+            this.resultDate.ReadOnly = true;
+            this.resultDate.Width = 80;
             // 
             // resultDescription
             // 
@@ -332,6 +354,8 @@ namespace DesktopStreamDownloader
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dlDirTxtBox.Location = new System.Drawing.Point(6, 356);
             this.dlDirTxtBox.Name = "dlDirTxtBox";
+            this.dlDirTxtBox.ReadOnly = true;
+            this.dlDirTxtBox.BackColor = System.Drawing.SystemColors.Window;
             this.dlDirTxtBox.Size = new System.Drawing.Size(342, 20);
             this.dlDirTxtBox.TabIndex = 1;
             // 
@@ -458,7 +482,9 @@ namespace DesktopStreamDownloader
         private System.Windows.Forms.DataGridViewTextBoxColumn resultName;
         private System.Windows.Forms.DataGridViewTextBoxColumn identifier;
         private System.Windows.Forms.DataGridViewTextBoxColumn description;
+        private System.Windows.Forms.DataGridViewTextBoxColumn resultLength;
         private System.Windows.Forms.DataGridViewTextBoxColumn Views;
+        private System.Windows.Forms.DataGridViewTextBoxColumn resultDate;
         private System.Windows.Forms.DataGridViewTextBoxColumn fileName;
         private System.Windows.Forms.DataGridViewTextBoxColumn downloadStatus;
         private System.Windows.Forms.DataGridViewTextBoxColumn DownloadProgress;

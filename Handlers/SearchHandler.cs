@@ -22,10 +22,7 @@ namespace DesktopStreamDownloader
 
             public string FormatPreview()
             {
-                string preview = "Author: " + author + Environment.NewLine +
-                    "Published: " + published + Environment.NewLine +
-                    "Length: " + length + Environment.NewLine +
-                    "Views: " + views.ToString("N0");
+                string preview = "Author: " + author;
 
                 if (description != null && description.Trim() != "")
                 {
