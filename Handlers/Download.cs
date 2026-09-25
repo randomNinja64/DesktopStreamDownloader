@@ -56,21 +56,11 @@ namespace DesktopStreamDownloader
             set { Overwrite = value; }
         }
 
-        public Download() {
-            this.DownloadUrl = new Uri("NULL");
-            this.DownloadStatus = null;
-            this.DownloadProgress = null;
-            this.FileName = "NULL";
-            this.Overwrite = false;
-        }
-
         public Download(Uri downloadUrl, string fileName, bool overwrite)
         {
-            this.DownloadUrl = downloadUrl;
-            this.DownloadStatus = null;
-            this.DownloadProgress = null;
-            this.FileName = fileName;
-            this.Overwrite = overwrite;
+            DownloadUrl = downloadUrl;
+            FileName = fileName;
+            Overwrite = overwrite;
         }
 
         private void OnPropertyChanged(string propertyName)

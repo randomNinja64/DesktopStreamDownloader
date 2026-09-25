@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace DesktopStreamDownloader
@@ -19,7 +18,6 @@ namespace DesktopStreamDownloader
             public StringBuilder Error = new StringBuilder();
             public string Stage = "Preparing...";
             public string Progress = "";
-            public int Generation;
             public bool Cancelled;
             public bool Active = true;
         }
@@ -30,7 +28,6 @@ namespace DesktopStreamDownloader
         MainForm frm;
         public BindingList<Download> Downloads;
         private List<RunningDownload> _running = new List<RunningDownload>();
-        private int _downloadGeneration;
 
         // Constructor
         public DownloadHandler(MainForm form)
@@ -131,12 +128,11 @@ namespace DesktopStreamDownloader
             // Create destination directory
             Directory.CreateDirectory(destination);
 
-            string res = Properties.Settings.Default.DefaultQuality.Substring(0, Properties.Settings.Default.DefaultQuality.Length - 1); ;
+            string res = Properties.Settings.Default.DefaultQuality.Substring(0, Properties.Settings.Default.DefaultQuality.Length - 1);
             string forceOverwrite = downloadItem.overwrite ? "--force-overwrites " : "";
 
             RunningDownload job = new RunningDownload();
             job.Item = downloadItem;
-            job.Generation = Interlocked.Increment(ref _downloadGeneration);
 
             Process youtubedlprocess = new Process();
             job.Process = youtubedlprocess;
@@ -180,13 +176,12 @@ namespace DesktopStreamDownloader
             ParseAndFormatOutput(job, YTDLOutput);
             string stage = job.Stage;
             string progress = job.Progress;
-            int generation = job.Generation;
             Download item = job.Item;
 
             // OutputDataReceived is not the UI thread; BindingList must be updated there.
             Action apply = () =>
             {
-                if (!job.Active || generation != job.Generation)
+                if (!job.Active)
                 {
                     return;
                 }
@@ -343,10 +338,6 @@ namespace DesktopStreamDownloader
                 }
                 else if (exitCode != 0 && errorText != "")
                 {
-                    if (errorText.Length > 800)
-                    {
-                        errorText = errorText.Substring(errorText.Length - 800);
-                    }
                     MessageBox.Show(errorText, "Download failed: " + finishedName, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else if (exitCode == 0)
@@ -460,11 +451,6 @@ namespace DesktopStreamDownloader
             }
         }
 
-        public void removeDownloadAtIndex(int index)
-        {
-            Downloads.RemoveAt(index);
-        }
-
         private void RemoveDownload(Download download)
         {
             if (download == null)
@@ -472,11 +458,7 @@ namespace DesktopStreamDownloader
                 return;
             }
 
-            int index = Downloads.IndexOf(download);
-            if (index >= 0)
-            {
-                Downloads.RemoveAt(index);
-            }
+            Downloads.Remove(download);
         }
     }
 }

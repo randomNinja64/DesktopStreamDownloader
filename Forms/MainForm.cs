@@ -13,7 +13,6 @@ namespace DesktopStreamDownloader
         DownloadHandler downloadHandler;
 
         private BackgroundWorker searchWorker;
-        private BackgroundWorker thumbnailWorker;
         private string currentThumbnailId = "";
         private bool searchInProgress = false;
         private Dictionary<string, Image> thumbnailCache = new Dictionary<string, Image>();
@@ -128,12 +127,9 @@ namespace DesktopStreamDownloader
                 return;
             }
 
-            if (results.Count > 0)
+            foreach (SearchHandler.VideoItem result in results)
             {
-                foreach (SearchHandler.VideoItem result in results)
-                {
-                    resultsGrid.Rows.Add(result.title, result.identifier, result.FormatPreview(), result.length, result.views, result.published);
-                }
+                resultsGrid.Rows.Add(result.title, result.identifier, result.FormatPreview(), result.length, result.views, result.published);
             }
         }
 
@@ -244,7 +240,6 @@ namespace DesktopStreamDownloader
             resultPreview.ImageLocation = null;
 
             BackgroundWorker worker = new BackgroundWorker();
-            thumbnailWorker = worker;
             worker.DoWork += thumbnailWorker_DoWork;
             worker.RunWorkerCompleted += thumbnailWorker_RunWorkerCompleted;
             worker.RunWorkerAsync(identifier);
@@ -344,22 +339,16 @@ namespace DesktopStreamDownloader
 
         private int setDownloadPath()
         {
-            // Create a new folder browser dialog
-            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
+            using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
             {
-                // Set the description
                 Description = "Please select path for downloaded files."
-            };
-
-            // Show the dialog
-            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            })
             {
-                // Set the download path
-                Properties.Settings.Default.DownloadPath = folderBrowserDialog.SelectedPath;
-                return 0;
-            }
-            else
-            {
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                {
+                    Properties.Settings.Default.DownloadPath = folderBrowserDialog.SelectedPath;
+                    return 0;
+                }
                 return 1;
             }
         }
@@ -384,15 +373,7 @@ namespace DesktopStreamDownloader
 
         private void downloadsDataGridView_SelectionChanged(object sender, EventArgs e)
         {
-            //If a row is selected, leave the cancel button enabled
-            if (downloadsDataGridView.SelectedRows.Count > 0)
-            {
-                cancelDlButton.Enabled = true;
-            }
-            else
-            {
-                cancelDlButton.Enabled = false;
-            }
+            cancelDlButton.Enabled = downloadsDataGridView.SelectedRows.Count > 0;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -416,9 +397,10 @@ namespace DesktopStreamDownloader
 
         private void optionsBtn_Click(object sender, EventArgs e)
         {
-            // Show Options as Dialog
-            OptionsForm optionsForm = new OptionsForm();
-            optionsForm.ShowDialog();
+            using (OptionsForm optionsForm = new OptionsForm())
+            {
+                optionsForm.ShowDialog();
+            }
             downloadHandler.FillSlots();
         }
 
