@@ -205,9 +205,9 @@ namespace DesktopStreamDownloader
             // 
             this.resultPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.resultPreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.resultPreview.Location = new System.Drawing.Point(511, 6);
+            this.resultPreview.Location = new System.Drawing.Point(512, 6);
             this.resultPreview.Name = "resultPreview";
-            this.resultPreview.Size = new System.Drawing.Size(196, 110);
+            this.resultPreview.Size = new System.Drawing.Size(194, 110);
             this.resultPreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.resultPreview.TabIndex = 1;
             this.resultPreview.TabStop = false;
