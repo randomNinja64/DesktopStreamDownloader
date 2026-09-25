@@ -315,10 +315,10 @@ namespace DesktopStreamDownloader
 
                 Uri URL = new Uri("https://youtube.com/watch?v=" + resultsGrid.SelectedRows[0].Cells[1].Value.ToString());
 
-                // Set status label to indicate item added to queue
-                queueStatusLbl.Text = "Added " + resultsGrid.SelectedRows[0].Cells[0].Value.ToString() + " to queue.";
-
-                downloadHandler.addDownload(URL, filename);
+                if (downloadHandler.addDownload(URL, filename))
+                {
+                    queueStatusLbl.Text = "Added " + resultsGrid.SelectedRows[0].Cells[0].Value.ToString() + " to queue.";
+                }
             }
         }
 

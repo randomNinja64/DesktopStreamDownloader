@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace DesktopStreamDownloader
@@ -18,6 +19,9 @@ namespace DesktopStreamDownloader
         MainForm frm;
         public BindingList<Download> Downloads;
         private Process _activeYtDlpProcess;
+        private Download _activeDownload;
+        private int _downloadGeneration;
+        private bool _userCancelled;
         private StringBuilder _ytDlpError;
 
         // Constructor
@@ -27,8 +31,8 @@ namespace DesktopStreamDownloader
             this.Downloads = new BindingList<Download>();
         }
 
-        // Function to Add Download
-        public void addDownload(Uri downloadUrl, string fileName)
+        // Function to Add Download. Returns false when the user declines an overwrite.
+        public bool addDownload(Uri downloadUrl, string fileName)
         {
             // Correct filename, removing any invalid characters for Windows, replacing them with -
             foreach (char c in Path.GetInvalidFileNameChars())
@@ -36,13 +40,49 @@ namespace DesktopStreamDownloader
                 fileName = fileName.Replace(c, '-');
             }
 
-            Downloads.Add(new Download(downloadUrl, fileName));
+            bool overwrite = false;
+            if (TitleCollision(fileName))
+            {
+                DialogResult result = MessageBox.Show(
+                    "\"" + fileName + "\" is already in the download folder or the queue. Overwrite it?",
+                    "Overwrite file",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+                if (result != DialogResult.Yes)
+                {
+                    return false;
+                }
+                overwrite = true;
+            }
+
+            Downloads.Add(new Download(downloadUrl, fileName, overwrite));
 
             // First item starts immediately. Later items wait until the active one finishes.
             if (Downloads.Count == 1)
             {
                 downloadItem(Downloads[0], Properties.Settings.Default.DownloadPath);
             }
+
+            return true;
+        }
+
+        private bool TitleCollision(string fileName)
+        {
+            string path = Path.Combine(Properties.Settings.Default.DownloadPath, fileName);
+            if (File.Exists(path))
+            {
+                return true;
+            }
+
+            foreach (Download download in Downloads)
+            {
+                if (string.Equals(download.fileName, fileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // Function to download item
@@ -53,10 +93,13 @@ namespace DesktopStreamDownloader
             Directory.CreateDirectory(destination);
 
             string res = Properties.Settings.Default.DefaultQuality.Substring(0, Properties.Settings.Default.DefaultQuality.Length - 1); ;
+            string forceOverwrite = downloadItem.overwrite ? "--force-overwrites " : "";
+            int generation = Interlocked.Increment(ref _downloadGeneration);
+            _activeDownload = downloadItem;
 
             Process youtubedlprocess = new Process();
             youtubedlprocess.StartInfo.FileName = Path.Combine(Application.StartupPath, "yt-dlp.exe");
-            youtubedlprocess.StartInfo.Arguments = $"-S res:{res},vcodec:h264,acodec:aac,ext:mp4:m4a --recode mp4 -o \"" + destination + "\\" + downloadItem.fileName + "\" " + "\"" + downloadItem.downloadUrl.ToString() + "\"";
+            youtubedlprocess.StartInfo.Arguments = $"-S res:{res},vcodec:h264,acodec:aac,ext:mp4:m4a " + forceOverwrite + "--recode mp4 -o \"" + destination + "\\" + downloadItem.fileName + "\" " + "\"" + downloadItem.downloadUrl.ToString() + "\"";
             youtubedlprocess.StartInfo.WorkingDirectory = Application.StartupPath;
             youtubedlprocess.StartInfo.UseShellExecute = false;
             youtubedlprocess.StartInfo.RedirectStandardOutput = true;
@@ -64,7 +107,7 @@ namespace DesktopStreamDownloader
             youtubedlprocess.StartInfo.CreateNoWindow = true;
             youtubedlprocess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             youtubedlprocess.EnableRaisingEvents = true;
-            youtubedlprocess.OutputDataReceived += (sender, e) => updateDLProgress(e.Data);
+            youtubedlprocess.OutputDataReceived += (sender, e) => updateDLProgress(generation, downloadItem, e.Data);
             youtubedlprocess.ErrorDataReceived += (sender, e) => AppendYtDlpError(e.Data);
 
             _ytDlpError = new StringBuilder();
@@ -79,9 +122,9 @@ namespace DesktopStreamDownloader
             youtubedlprocess.Exited += (sender, e) => OnDownloadCompleted();
         }
 
-        public void updateDLProgress(string YTDLOutput)
+        public void updateDLProgress(int generation, Download item, string YTDLOutput)
         {
-            if (YTDLOutput == null || Application.OpenForms.Count == 0)
+            if (YTDLOutput == null || generation != _downloadGeneration || Application.OpenForms.Count == 0)
             {
                 return;
             }
@@ -91,14 +134,16 @@ namespace DesktopStreamDownloader
             string progress = _progressText;
 
             // OutputDataReceived is not the UI thread; BindingList must be updated there.
-            // Count is rechecked because cancel/completion may RemoveAt(0) first.
+            // Generation is rechecked because completion may have moved on to the next download.
             Action apply = () =>
             {
-                if (Downloads.Count > 0)
+                if (generation != _downloadGeneration || item != _activeDownload)
                 {
-                    Downloads[0].downloadStatus = stage;
-                    Downloads[0].downloadProgress = progress;
+                    return;
                 }
+
+                item.downloadStatus = stage;
+                item.downloadProgress = progress;
             };
 
             Form form = Application.OpenForms[0];
@@ -211,8 +256,11 @@ namespace DesktopStreamDownloader
         private void OnDownloadCompleted()
         {
             int exitCode = 0;
+            bool cancelled = _userCancelled;
+            _userCancelled = false;
             string errorText = ErrorLines(_ytDlpError);
-            string failedName = Downloads.Count > 0 ? Downloads[0].fileName : "download";
+            Download finished = _activeDownload;
+            string finishedName = finished != null ? finished.fileName : "download";
 
             try
             {
@@ -225,6 +273,8 @@ namespace DesktopStreamDownloader
             {
             }
 
+            Interlocked.Increment(ref _downloadGeneration);
+            _activeDownload = null;
             ClearActiveYtDlpProcess();
 
             if (Application.OpenForms.Count == 0)
@@ -235,23 +285,24 @@ namespace DesktopStreamDownloader
             // Remove finished item and start the next one on the UI thread.
             Action advance = () =>
             {
-                if (exitCode != 0 && errorText != "")
+                if (cancelled)
+                {
+                    frm.queueStatusLbl.Text = "Cancelled " + finishedName + ".";
+                }
+                else if (exitCode != 0 && errorText != "")
                 {
                     if (errorText.Length > 800)
                     {
                         errorText = errorText.Substring(errorText.Length - 800);
                     }
-                    MessageBox.Show(errorText, "Download failed: " + failedName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(errorText, "Download failed: " + finishedName, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else if (exitCode == 0)
                 {
-                    frm.queueStatusLbl.Text = "Completed " + failedName + ".";
+                    frm.queueStatusLbl.Text = "Completed " + finishedName + ".";
                 }
 
-                if (Downloads.Count > 0)
-                {
-                    Downloads.RemoveAt(0);
-                }
+                RemoveDownload(finished);
 
                 if (Downloads.Count > 0)
                 {
@@ -277,11 +328,7 @@ namespace DesktopStreamDownloader
                 return;
             }
 
-            if (_ytDlpError != null)
-            {
-                _ytDlpError.Length = 0;
-            }
-
+            _userCancelled = true;
             Download active = Downloads[0];
             Downloads.Clear();
             Abort(active);
@@ -290,11 +337,13 @@ namespace DesktopStreamDownloader
         // Function to abort download
         public void Abort(Download downloadToAbort)
         {
-            // Kill only the yt-dlp process started by this handler
+            // Kill only the yt-dlp process started by this handler.
+            // The flag is set only while that process is alive, so a late click cannot mark the next download as cancelled.
             try
             {
                 if (_activeYtDlpProcess != null && !_activeYtDlpProcess.HasExited)
                 {
+                    _userCancelled = true;
                     _activeYtDlpProcess.Kill();
                 }
             }
@@ -337,6 +386,20 @@ namespace DesktopStreamDownloader
         public void removeDownloadAtIndex(int index)
         {
             Downloads.RemoveAt(index);
+        }
+
+        private void RemoveDownload(Download download)
+        {
+            if (download == null)
+            {
+                return;
+            }
+
+            int index = Downloads.IndexOf(download);
+            if (index >= 0)
+            {
+                Downloads.RemoveAt(index);
+            }
         }
     }
 }

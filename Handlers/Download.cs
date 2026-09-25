@@ -9,6 +9,7 @@ namespace DesktopStreamDownloader
         private string FileName;
         private string DownloadStatus;
         private string DownloadProgress;
+        private bool Overwrite;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -49,20 +50,27 @@ namespace DesktopStreamDownloader
             get { return FileName; }
             set { FileName = value; }
         }
+        public bool overwrite
+        {
+            get { return Overwrite; }
+            set { Overwrite = value; }
+        }
 
         public Download() {
             this.DownloadUrl = new Uri("NULL");
             this.DownloadStatus = null;
             this.DownloadProgress = null;
             this.FileName = "NULL";
+            this.Overwrite = false;
         }
 
-        public Download(Uri downloadUrl, string fileName)
+        public Download(Uri downloadUrl, string fileName, bool overwrite)
         {
             this.DownloadUrl = downloadUrl;
             this.DownloadStatus = null;
             this.DownloadProgress = null;
             this.FileName = fileName;
+            this.Overwrite = overwrite;
         }
 
         private void OnPropertyChanged(string propertyName)
