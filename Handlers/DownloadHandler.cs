@@ -11,6 +11,9 @@ namespace DesktopStreamDownloader
     public class DownloadHandler
     {
         private static readonly Regex progressRegex = new Regex(@"(\d{1,3}\.\d{1,2})%");
+        private static readonly Regex speedRegex = new Regex(@"at\s+(\S+/s)");
+        private string _progressStage = "Preparing...";
+        private string _progressText = "";
 
         MainForm frm;
         public BindingList<Download> Downloads;
@@ -65,6 +68,8 @@ namespace DesktopStreamDownloader
             youtubedlprocess.ErrorDataReceived += (sender, e) => AppendYtDlpError(e.Data);
 
             _ytDlpError = new StringBuilder();
+            _progressStage = "Preparing...";
+            _progressText = "";
 
             youtubedlprocess.Start();
             _activeYtDlpProcess = youtubedlprocess;
@@ -81,7 +86,9 @@ namespace DesktopStreamDownloader
                 return;
             }
 
-            string formattedOutput = ParseAndFormatOutput(YTDLOutput);
+            ParseAndFormatOutput(YTDLOutput);
+            string stage = _progressStage;
+            string progress = _progressText;
 
             // OutputDataReceived is not the UI thread; BindingList must be updated there.
             // Count is rechecked because cancel/completion may RemoveAt(0) first.
@@ -89,7 +96,8 @@ namespace DesktopStreamDownloader
             {
                 if (Downloads.Count > 0)
                 {
-                    Downloads[0].downloadProgress = formattedOutput;
+                    Downloads[0].downloadStatus = stage;
+                    Downloads[0].downloadProgress = progress;
                 }
             };
 
@@ -104,21 +112,92 @@ namespace DesktopStreamDownloader
             }
         }
 
-        private string ParseAndFormatOutput(string output)
+        private void ParseAndFormatOutput(string output)
         {
-            if (output != null)
+            if (output == null)
             {
-                Match match = progressRegex.Match(output);
-
-                if (match.Success)
-                {
-                    string percentage = match.Groups[1].Value;
-                    return $"{percentage}";
-                }
+                return;
             }
 
-            // If no percentage is found, return "Preparing..."
-            return "Preparing...";
+            string stage = StageFromLine(output);
+            if (stage != null)
+            {
+                _progressStage = stage;
+            }
+
+            Match match = progressRegex.Match(output);
+            if (!match.Success)
+            {
+                return;
+            }
+
+            _progressText = match.Groups[1].Value + "%";
+            Match speed = speedRegex.Match(output);
+            if (speed.Success && speed.Groups[1].Value.IndexOf("Unknown") < 0)
+            {
+                _progressText = _progressText + " · " + speed.Groups[1].Value;
+            }
+        }
+
+        private static string StageFromLine(string output)
+        {
+            if (output.IndexOf("[Merger]") >= 0 || output.IndexOf("Merging formats") >= 0)
+            {
+                return "Combining";
+            }
+            if (output.IndexOf("[VideoConvertor]") >= 0 || output.IndexOf("Converting video") >= 0)
+            {
+                return "Converting";
+            }
+            if (output.IndexOf("Remuxing") >= 0)
+            {
+                return "Remuxing";
+            }
+            if (output.IndexOf("[ExtractAudio]") >= 0)
+            {
+                return "Extracting audio";
+            }
+            if (output.IndexOf("Destination:") >= 0)
+            {
+                string lower = output.ToLower();
+                if (lower.IndexOf(".m4a") >= 0 || lower.IndexOf(".aac") >= 0 || lower.IndexOf(".mp3") >= 0 || lower.IndexOf(".opus") >= 0
+                    || lower.IndexOf(".f249.") >= 0 || lower.IndexOf(".f250.") >= 0 || lower.IndexOf(".f251.") >= 0)
+                {
+                    return "Downloading audio";
+                }
+                return "Downloading video";
+            }
+            return null;
+        }
+
+        private static string ErrorLines(StringBuilder stderr)
+        {
+            if (stderr == null)
+            {
+                return "";
+            }
+
+            StringBuilder errors = new StringBuilder();
+            string[] lines = stderr.ToString().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string line in lines)
+            {
+                if (line.IndexOf("ERROR:") < 0)
+                {
+                    continue;
+                }
+                if (errors.Length > 0)
+                {
+                    errors.AppendLine();
+                }
+                errors.Append(line.Trim());
+            }
+
+            string text = errors.ToString();
+            if (text.Length > 800)
+            {
+                text = text.Substring(text.Length - 800);
+            }
+            return text;
         }
 
         private void AppendYtDlpError(string line)
@@ -132,7 +211,7 @@ namespace DesktopStreamDownloader
         private void OnDownloadCompleted()
         {
             int exitCode = 0;
-            string errorText = _ytDlpError == null ? "" : _ytDlpError.ToString().Trim();
+            string errorText = ErrorLines(_ytDlpError);
             string failedName = Downloads.Count > 0 ? Downloads[0].fileName : "download";
 
             try

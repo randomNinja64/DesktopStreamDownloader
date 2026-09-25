@@ -50,6 +50,7 @@ namespace DesktopStreamDownloader
             this.cancelDlButton = new System.Windows.Forms.Button();
             this.downloadsDataGridView = new System.Windows.Forms.DataGridView();
             this.fileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.downloadStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DownloadProgress = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dlDirLabel = new System.Windows.Forms.Label();
             this.dlDirTxtBox = new System.Windows.Forms.TextBox();
@@ -279,6 +280,7 @@ namespace DesktopStreamDownloader
             this.downloadsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.downloadsDataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.fileName,
+            this.downloadStatus,
             this.DownloadProgress});
             this.downloadsDataGridView.Location = new System.Drawing.Point(6, 6);
             this.downloadsDataGridView.MultiSelect = false;
@@ -299,12 +301,21 @@ namespace DesktopStreamDownloader
             this.fileName.Name = "fileName";
             this.fileName.ReadOnly = true;
             // 
+            // downloadStatus
+            // 
+            this.downloadStatus.DataPropertyName = "downloadStatus";
+            this.downloadStatus.HeaderText = "Status";
+            this.downloadStatus.Name = "downloadStatus";
+            this.downloadStatus.ReadOnly = true;
+            this.downloadStatus.Width = 140;
+            // 
             // DownloadProgress
             // 
             this.DownloadProgress.DataPropertyName = "downloadProgress";
             this.DownloadProgress.HeaderText = "Progress";
             this.DownloadProgress.Name = "DownloadProgress";
             this.DownloadProgress.ReadOnly = true;
+            this.DownloadProgress.Width = 140;
             // 
             // dlDirLabel
             // 
@@ -450,6 +461,7 @@ namespace DesktopStreamDownloader
         private System.Windows.Forms.DataGridViewTextBoxColumn description;
         private System.Windows.Forms.DataGridViewTextBoxColumn Views;
         private System.Windows.Forms.DataGridViewTextBoxColumn fileName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn downloadStatus;
         private System.Windows.Forms.DataGridViewTextBoxColumn DownloadProgress;
         private System.Windows.Forms.Label keywordLbl;
         private System.Windows.Forms.Label pagesLbl;

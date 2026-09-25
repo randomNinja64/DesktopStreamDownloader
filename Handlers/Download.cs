@@ -7,6 +7,7 @@ namespace DesktopStreamDownloader
     {
         private Uri DownloadUrl;
         private string FileName;
+        private string DownloadStatus;
         private string DownloadProgress;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -16,6 +17,19 @@ namespace DesktopStreamDownloader
         {
             get { return DownloadUrl; }
             set { DownloadUrl = value; }
+        }
+        public string downloadStatus
+        {
+            get { return DownloadStatus; }
+            set
+            {
+                if (DownloadStatus == value)
+                {
+                    return;
+                }
+                DownloadStatus = value;
+                OnPropertyChanged("downloadStatus");
+            }
         }
         public string downloadProgress
         {
@@ -38,6 +52,7 @@ namespace DesktopStreamDownloader
 
         public Download() {
             this.DownloadUrl = new Uri("NULL");
+            this.DownloadStatus = null;
             this.DownloadProgress = null;
             this.FileName = "NULL";
         }
@@ -45,6 +60,7 @@ namespace DesktopStreamDownloader
         public Download(Uri downloadUrl, string fileName)
         {
             this.DownloadUrl = downloadUrl;
+            this.DownloadStatus = null;
             this.DownloadProgress = null;
             this.FileName = fileName;
         }
