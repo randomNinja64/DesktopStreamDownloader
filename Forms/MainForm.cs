@@ -262,13 +262,6 @@ namespace DesktopStreamDownloader
 
                 Uri URL = new Uri("https://youtube.com/watch?v=" + resultsGrid.SelectedRows[0].Cells[1].Value.ToString());
 
-                // If URL is null, error out and break
-                if (URL == null)
-                {
-                    MessageBox.Show("Error 11: No MP4 files found for video.");
-                    return;
-                }
-
                 // Set status label to indicate item added to queue
                 queueStatusLbl.Text = "Added " + resultsGrid.SelectedRows[0].Cells[0].Value.ToString() + " to queue.";
 
