@@ -338,11 +338,6 @@ namespace DesktopStreamDownloader
             }
         }
 
-        private void downloadsDataGridView_RowEnter(object sender, DataGridViewCellEventArgs e)
-        {
-            cancelDlButton.Enabled = true;
-        }
-
         private void downloadsDataGridView_SelectionChanged(object sender, EventArgs e)
         {
             //If a row is selected, leave the cancel button enabled
