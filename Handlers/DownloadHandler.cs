@@ -53,7 +53,7 @@ namespace DesktopStreamDownloader
 
             Process youtubedlprocess = new Process();
             youtubedlprocess.StartInfo.FileName = Path.Combine(Application.StartupPath, "yt-dlp.exe");
-            youtubedlprocess.StartInfo.Arguments = $"-S res:{res},ext:mp4:m4a --recode mp4 -o \"" + destination + "\\" + downloadItem.fileName + "\" " + "\"" + downloadItem.downloadUrl.ToString() + "\"";
+            youtubedlprocess.StartInfo.Arguments = $"-S res:{res},vcodec:h264,acodec:aac,ext:mp4:m4a --recode mp4 -o \"" + destination + "\\" + downloadItem.fileName + "\" " + "\"" + downloadItem.downloadUrl.ToString() + "\"";
             youtubedlprocess.StartInfo.WorkingDirectory = Application.StartupPath;
             youtubedlprocess.StartInfo.UseShellExecute = false;
             youtubedlprocess.StartInfo.RedirectStandardOutput = true;

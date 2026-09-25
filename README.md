@@ -2,11 +2,11 @@
 	<img src="Assets/DSD.ico" alt="DesktopStreamDownloader Icon" width="120" />
 </p>
 <h3 align="center">DesktopStreamDownloader</h3>
-<p align="center"><em>YouTube Search/Download GUI for Windows XP+</em></p>
+<p align="center"><em>YT-DLP-based Search/Download GUI for Windows XP+</em></p>
 
 ## About
 
-DesktopStreamDownloader is a desktop application designed to search and download YouTube videos via [yt-dlp](https://github.com/nicolaasjan/yt-dlp). The application is written targeting .NET 3.5 and Windows XP.
+DesktopStreamDownloader is a desktop application designed to search and download videos via [yt-dlp](https://github.com/nicolaasjan/yt-dlp). The application is written targeting .NET 3.5 and Windows XP.
 
 
 ## Requirements
@@ -23,7 +23,7 @@ Alternatively, the project can be built directly in Visual Studio; however, the 
 
 ## Usage
 
-The application will prompt you for a download folder when first launched, this can be changed in options.
+The application will prompt you for a download folder when first launched. Change it later with Browse on the Downloads tab.
 
 - Search is performed in the Search tab, and downloads are managed in the Downloads tab.
 - Downloads can be added to the download queue using the "Add to Queue" button.
@@ -33,7 +33,7 @@ The application will prompt you for a download folder when first launched, this 
 
 Options are available from the Options button on the Downloads tab:
 
-- **Default Quality** - Preferred download resolution to be passed into YT-DLP (`240p`, `360p`, `480p`, `720p`, or `1080p`; default `480p`)
+- **Default Quality** - Preferred download resolution to be passed into YT-DLP (`144p`, `240p`, `360p`, `480p`, `720p`, or `1080p`; default `480p`)
 
 ## Credits
 

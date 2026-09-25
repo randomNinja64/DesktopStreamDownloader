@@ -49,6 +49,7 @@ namespace DesktopStreamDownloader
             this.qualityComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.qualityComboBox.FormattingEnabled = true;
             this.qualityComboBox.Items.AddRange(new object[] {
+            "144p",
             "240p",
             "360p",
             "480p",
