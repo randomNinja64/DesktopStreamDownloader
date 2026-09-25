@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 namespace DesktopStreamDownloader
@@ -68,22 +70,31 @@ namespace DesktopStreamDownloader
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = ytDlpPath,
-                Arguments = "-j --flat-playlist --no-warnings --extractor-args \"youtubetab:approximate_date\" \"" + searchArg + "\"",
+                Arguments = "-j --flat-playlist --no-warnings --encoding utf-8 --extractor-args \"youtubetab:approximate_date\" \"" + searchArg + "\"",
                 WorkingDirectory = Application.StartupPath,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8,
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
 
+            StringBuilder stderr = new StringBuilder();
             string stdout;
             int exitCode;
             try
             {
                 using (Process process = Process.Start(startInfo))
                 {
-                    process.ErrorDataReceived += delegate { };
+                    process.ErrorDataReceived += delegate(object sender, DataReceivedEventArgs e)
+                    {
+                        if (e.Data != null)
+                        {
+                            stderr.AppendLine(e.Data);
+                        }
+                    };
                     process.BeginErrorReadLine();
                     stdout = process.StandardOutput.ReadToEnd();
                     process.WaitForExit();
@@ -99,39 +110,22 @@ namespace DesktopStreamDownloader
             List<VideoItem> results = new List<VideoItem>();
             HashSet<string> seenIds = new HashSet<string>();
 
-            if (string.IsNullOrEmpty(stdout))
+            using (StringReader reader = new StringReader(stdout ?? ""))
             {
-                if (exitCode != 0)
+                string line;
+                while ((line = reader.ReadLine()) != null)
                 {
-                    errorMessage = "Error 01: Error retrieving results. Please check your Internet connection or that yt-dlp is working correctly.";
-                    return null;
-                }
-
-                errorMessage = "Error 03: No results found.";
-                return null;
-            }
-
-            try
-            {
-                using (StringReader reader = new StringReader(stdout))
-                {
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
+                    if (line.Trim() == "")
                     {
-                        if (line.Trim() == "")
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
+                    try
+                    {
                         JObject item = JObject.Parse(line);
 
                         string identifier = TokenAsString(item["id"]);
-                        if (identifier == "")
-                        {
-                            continue;
-                        }
-
-                        if (seenIds.Contains(identifier))
+                        if (identifier == "" || seenIds.Contains(identifier))
                         {
                             continue;
                         }
@@ -143,9 +137,16 @@ namespace DesktopStreamDownloader
                         }
 
                         Int64 views = 0;
-                        if (item["view_count"] != null && item["view_count"].Type != JTokenType.Null)
+                        double viewValue;
+                        if (TryTokenDouble(item["view_count"], out viewValue))
                         {
-                            views = (Int64)item["view_count"];
+                            try
+                            {
+                                views = Convert.ToInt64(viewValue);
+                            }
+                            catch
+                            {
+                            }
                         }
 
                         string author = TokenAsString(item["channel"]);
@@ -166,20 +167,26 @@ namespace DesktopStreamDownloader
                         }
 
                         string lengthText = "Unknown";
-                        if (item["duration"] != null && item["duration"].Type != JTokenType.Null)
+                        double seconds;
+                        if (TryTokenDouble(item["duration"], out seconds))
                         {
-                            double seconds = (double)item["duration"];
-                            TimeSpan videoLength = TimeSpan.FromSeconds(seconds);
-                            if (videoLength.TotalHours >= 1)
+                            try
                             {
-                                lengthText = string.Format("{0}:{1:D2}:{2:D2}", (int)videoLength.TotalHours, videoLength.Minutes, videoLength.Seconds);
+                                TimeSpan videoLength = TimeSpan.FromSeconds(seconds);
+                                if (videoLength.TotalHours >= 1)
+                                {
+                                    lengthText = string.Format("{0}:{1:D2}:{2:D2}", (int)videoLength.TotalHours, videoLength.Minutes, videoLength.Seconds);
+                                }
+                                else
+                                {
+                                    lengthText = string.Format("{0:D2}:{1:D2}", videoLength.Minutes, videoLength.Seconds);
+                                }
                             }
-                            else
+                            catch
                             {
-                                lengthText = string.Format("{0:D2}:{1:D2}", videoLength.Minutes, videoLength.Seconds);
                             }
                         }
-                        else
+                        if (lengthText == "Unknown")
                         {
                             string durationString = TokenAsString(item["duration_string"]);
                             if (durationString != "")
@@ -202,16 +209,29 @@ namespace DesktopStreamDownloader
                         results.Add(result);
                         seenIds.Add(identifier);
                     }
+                    catch
+                    {
+                    }
                 }
-            }
-            catch
-            {
-                errorMessage = "Error 01: Error retrieving results. Please check your Internet connection or that yt-dlp is working correctly.";
-                return null;
             }
 
             if (results.Count == 0)
             {
+                if (exitCode != 0)
+                {
+                    errorMessage = "Error 01: Error retrieving results. Please check your Internet connection or that yt-dlp is working correctly.";
+                    string stderrText = stderr.ToString().Trim();
+                    if (stderrText != "")
+                    {
+                        if (stderrText.Length > 800)
+                        {
+                            stderrText = stderrText.Substring(stderrText.Length - 800);
+                        }
+                        errorMessage = errorMessage + Environment.NewLine + Environment.NewLine + stderrText;
+                    }
+                    return null;
+                }
+
                 errorMessage = "Error 03: No results found.";
                 return null;
             }
@@ -336,6 +356,24 @@ namespace DesktopStreamDownloader
                 return "";
             }
             return token.ToString();
+        }
+
+        private static bool TryTokenDouble(JToken token, out double value)
+        {
+            value = 0;
+            if (token == null || token.Type == JTokenType.Null)
+            {
+                return false;
+            }
+            try
+            {
+                value = Convert.ToDouble(token.ToString(), CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static void CopyStream(Stream input, Stream output)
