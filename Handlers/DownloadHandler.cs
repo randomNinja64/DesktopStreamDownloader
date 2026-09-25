@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -11,18 +12,25 @@ namespace DesktopStreamDownloader
 {
     public class DownloadHandler
     {
+        private class RunningDownload
+        {
+            public Download Item;
+            public Process Process;
+            public StringBuilder Error = new StringBuilder();
+            public string Stage = "Preparing...";
+            public string Progress = "";
+            public int Generation;
+            public bool Cancelled;
+            public bool Active = true;
+        }
+
         private static readonly Regex progressRegex = new Regex(@"(\d{1,3}\.\d{1,2})%");
         private static readonly Regex speedRegex = new Regex(@"at\s+(\S+/s)");
-        private string _progressStage = "Preparing...";
-        private string _progressText = "";
 
         MainForm frm;
         public BindingList<Download> Downloads;
-        private Process _activeYtDlpProcess;
-        private Download _activeDownload;
+        private List<RunningDownload> _running = new List<RunningDownload>();
         private int _downloadGeneration;
-        private bool _userCancelled;
-        private StringBuilder _ytDlpError;
 
         // Constructor
         public DownloadHandler(MainForm form)
@@ -56,14 +64,46 @@ namespace DesktopStreamDownloader
             }
 
             Downloads.Add(new Download(downloadUrl, fileName, overwrite));
-
-            // First item starts immediately. Later items wait until the active one finishes.
-            if (Downloads.Count == 1)
-            {
-                downloadItem(Downloads[0], Properties.Settings.Default.DownloadPath);
-            }
-
+            FillSlots();
             return true;
+        }
+
+        public void FillSlots()
+        {
+            string destination = Properties.Settings.Default.DownloadPath;
+            while (_running.Count < Properties.Settings.Default.MaxConcurrentDownloads)
+            {
+                Download next = NextQueued();
+                if (next == null)
+                {
+                    return;
+                }
+                downloadItem(next, destination);
+            }
+        }
+
+        private Download NextQueued()
+        {
+            foreach (Download download in Downloads)
+            {
+                if (FindRunning(download) == null && !FileNameRunning(download.fileName))
+                {
+                    return download;
+                }
+            }
+            return null;
+        }
+
+        private bool FileNameRunning(string fileName)
+        {
+            foreach (RunningDownload job in _running)
+            {
+                if (string.Equals(job.Item.fileName, fileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private bool TitleCollision(string fileName)
@@ -88,16 +128,18 @@ namespace DesktopStreamDownloader
         // Function to download item
         public void downloadItem(Download downloadItem, string destination)
         {
-
             // Create destination directory
             Directory.CreateDirectory(destination);
 
             string res = Properties.Settings.Default.DefaultQuality.Substring(0, Properties.Settings.Default.DefaultQuality.Length - 1); ;
             string forceOverwrite = downloadItem.overwrite ? "--force-overwrites " : "";
-            int generation = Interlocked.Increment(ref _downloadGeneration);
-            _activeDownload = downloadItem;
+
+            RunningDownload job = new RunningDownload();
+            job.Item = downloadItem;
+            job.Generation = Interlocked.Increment(ref _downloadGeneration);
 
             Process youtubedlprocess = new Process();
+            job.Process = youtubedlprocess;
             youtubedlprocess.StartInfo.FileName = Path.Combine(Application.StartupPath, "yt-dlp.exe");
             youtubedlprocess.StartInfo.Arguments = $"-S res:{res},vcodec:h264,acodec:aac,ext:mp4:m4a " + forceOverwrite + "--recode mp4 -o \"" + destination + "\\" + downloadItem.fileName + "\" " + "\"" + downloadItem.downloadUrl.ToString() + "\"";
             youtubedlprocess.StartInfo.WorkingDirectory = Application.StartupPath;
@@ -107,37 +149,44 @@ namespace DesktopStreamDownloader
             youtubedlprocess.StartInfo.CreateNoWindow = true;
             youtubedlprocess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             youtubedlprocess.EnableRaisingEvents = true;
-            youtubedlprocess.OutputDataReceived += (sender, e) => updateDLProgress(generation, downloadItem, e.Data);
-            youtubedlprocess.ErrorDataReceived += (sender, e) => AppendYtDlpError(e.Data);
+            youtubedlprocess.OutputDataReceived += (sender, e) => updateDLProgress(job, e.Data);
+            youtubedlprocess.ErrorDataReceived += (sender, e) => AppendYtDlpError(job, e.Data);
+            youtubedlprocess.Exited += (sender, e) => OnDownloadCompleted(job);
 
-            _ytDlpError = new StringBuilder();
-            _progressStage = "Preparing...";
-            _progressText = "";
+            _running.Add(job);
 
-            youtubedlprocess.Start();
-            _activeYtDlpProcess = youtubedlprocess;
-            youtubedlprocess.BeginOutputReadLine();
-            youtubedlprocess.BeginErrorReadLine();
-            // Async event handler for when process exits
-            youtubedlprocess.Exited += (sender, e) => OnDownloadCompleted();
+            try
+            {
+                youtubedlprocess.Start();
+                youtubedlprocess.BeginOutputReadLine();
+                youtubedlprocess.BeginErrorReadLine();
+            }
+            catch
+            {
+                job.Active = false;
+                _running.Remove(job);
+                youtubedlprocess.Dispose();
+                throw;
+            }
         }
 
-        public void updateDLProgress(int generation, Download item, string YTDLOutput)
+        private void updateDLProgress(RunningDownload job, string YTDLOutput)
         {
-            if (YTDLOutput == null || generation != _downloadGeneration || Application.OpenForms.Count == 0)
+            if (YTDLOutput == null || !job.Active || Application.OpenForms.Count == 0)
             {
                 return;
             }
 
-            ParseAndFormatOutput(YTDLOutput);
-            string stage = _progressStage;
-            string progress = _progressText;
+            ParseAndFormatOutput(job, YTDLOutput);
+            string stage = job.Stage;
+            string progress = job.Progress;
+            int generation = job.Generation;
+            Download item = job.Item;
 
             // OutputDataReceived is not the UI thread; BindingList must be updated there.
-            // Generation is rechecked because completion may have moved on to the next download.
             Action apply = () =>
             {
-                if (generation != _downloadGeneration || item != _activeDownload)
+                if (!job.Active || generation != job.Generation)
                 {
                     return;
                 }
@@ -157,7 +206,7 @@ namespace DesktopStreamDownloader
             }
         }
 
-        private void ParseAndFormatOutput(string output)
+        private void ParseAndFormatOutput(RunningDownload job, string output)
         {
             if (output == null)
             {
@@ -167,7 +216,7 @@ namespace DesktopStreamDownloader
             string stage = StageFromLine(output);
             if (stage != null)
             {
-                _progressStage = stage;
+                job.Stage = stage;
             }
 
             Match match = progressRegex.Match(output);
@@ -176,11 +225,11 @@ namespace DesktopStreamDownloader
                 return;
             }
 
-            _progressText = match.Groups[1].Value + "%";
+            job.Progress = match.Groups[1].Value + "%";
             Match speed = speedRegex.Match(output);
             if (speed.Success && speed.Groups[1].Value.IndexOf("Unknown") < 0)
             {
-                _progressText = _progressText + " · " + speed.Groups[1].Value;
+                job.Progress = job.Progress + " · " + speed.Groups[1].Value;
             }
         }
 
@@ -245,46 +294,49 @@ namespace DesktopStreamDownloader
             return text;
         }
 
-        private void AppendYtDlpError(string line)
+        private static void AppendYtDlpError(RunningDownload job, string line)
         {
-            if (line != null && _ytDlpError != null)
+            if (line != null && job.Error != null)
             {
-                _ytDlpError.AppendLine(line);
+                job.Error.AppendLine(line);
             }
         }
 
-        private void OnDownloadCompleted()
+        private void OnDownloadCompleted(RunningDownload job)
         {
+            if (!job.Active)
+            {
+                return;
+            }
+
+            job.Active = false;
             int exitCode = 0;
-            bool cancelled = _userCancelled;
-            _userCancelled = false;
-            string errorText = ErrorLines(_ytDlpError);
-            Download finished = _activeDownload;
-            string finishedName = finished != null ? finished.fileName : "download";
+            bool cancelled = job.Cancelled;
+            string errorText = ErrorLines(job.Error);
+            string finishedName = job.Item != null ? job.Item.fileName : "download";
 
             try
             {
-                if (_activeYtDlpProcess != null && _activeYtDlpProcess.HasExited)
+                if (job.Process != null && job.Process.HasExited)
                 {
-                    exitCode = _activeYtDlpProcess.ExitCode;
+                    exitCode = job.Process.ExitCode;
                 }
             }
             catch (InvalidOperationException)
             {
             }
 
-            Interlocked.Increment(ref _downloadGeneration);
-            _activeDownload = null;
-            ClearActiveYtDlpProcess();
-
             if (Application.OpenForms.Count == 0)
             {
+                RemoveRunning(job);
                 return;
             }
 
             // Remove finished item and start the next one on the UI thread.
             Action advance = () =>
             {
+                RemoveRunning(job);
+
                 if (cancelled)
                 {
                     frm.queueStatusLbl.Text = "Cancelled " + finishedName + ".";
@@ -302,12 +354,8 @@ namespace DesktopStreamDownloader
                     frm.queueStatusLbl.Text = "Completed " + finishedName + ".";
                 }
 
-                RemoveDownload(finished);
-
-                if (Downloads.Count > 0)
-                {
-                    downloadItem(Downloads[0], Properties.Settings.Default.DownloadPath);
-                }
+                RemoveDownload(job.Item);
+                FillSlots();
             };
 
             Form form = Application.OpenForms[0];
@@ -323,28 +371,46 @@ namespace DesktopStreamDownloader
 
         public void AbortActiveForExit()
         {
-            if (Downloads.Count == 0)
+            if (Downloads.Count == 0 && _running.Count == 0)
             {
                 return;
             }
 
-            _userCancelled = true;
-            Download active = Downloads[0];
+            List<RunningDownload> jobs = new List<RunningDownload>(_running);
+            foreach (RunningDownload job in jobs)
+            {
+                job.Cancelled = true;
+            }
+
             Downloads.Clear();
-            Abort(active);
+            foreach (RunningDownload job in jobs)
+            {
+                KillJob(job);
+            }
         }
 
-        // Function to abort download
-        public void Abort(Download downloadToAbort)
+        public void Cancel(Download download)
         {
-            // Kill only the yt-dlp process started by this handler.
-            // The flag is set only while that process is alive, so a late click cannot mark the next download as cancelled.
+            RunningDownload job = FindRunning(download);
+            if (job == null)
+            {
+                RemoveDownload(download);
+                return;
+            }
+
+            KillJob(job);
+        }
+
+        private void KillJob(RunningDownload job)
+        {
+            // The flag is set only while that process is alive, so a late click cannot mark a finished download as cancelled.
+            // Exit sets Cancelled on every job before calling this.
             try
             {
-                if (_activeYtDlpProcess != null && !_activeYtDlpProcess.HasExited)
+                if (job.Process != null && !job.Process.HasExited)
                 {
-                    _userCancelled = true;
-                    _activeYtDlpProcess.Kill();
+                    job.Cancelled = true;
+                    job.Process.Kill();
                 }
             }
             catch (InvalidOperationException)
@@ -356,17 +422,14 @@ namespace DesktopStreamDownloader
                 // Process could not be terminated
             }
 
-            string filePath = Path.Combine(Properties.Settings.Default.DownloadPath, downloadToAbort.fileName);
+            string filePath = Path.Combine(Properties.Settings.Default.DownloadPath, job.Item.fileName);
 
             try
             {
-                // Check if the file exists
                 if (File.Exists(filePath))
                 {
-                    // Attempt to delete the file
                     File.Delete(filePath);
                 }
-
             }
             catch (Exception ex)
             {
@@ -374,12 +437,26 @@ namespace DesktopStreamDownloader
             }
         }
 
-        private void ClearActiveYtDlpProcess()
+        private RunningDownload FindRunning(Download download)
         {
-            if (_activeYtDlpProcess != null)
+            foreach (RunningDownload job in _running)
             {
-                _activeYtDlpProcess.Dispose();
-                _activeYtDlpProcess = null;
+                if (job.Item == download)
+                {
+                    return job;
+                }
+            }
+            return null;
+        }
+
+        private void RemoveRunning(RunningDownload job)
+        {
+            job.Active = false;
+            _running.Remove(job);
+            if (job.Process != null)
+            {
+                job.Process.Dispose();
+                job.Process = null;
             }
         }
 

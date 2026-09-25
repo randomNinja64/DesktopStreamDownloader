@@ -379,16 +379,7 @@ namespace DesktopStreamDownloader
                 return;
             }
 
-            // Index 0 is active: Kill yt-dlp; Exited → OnDownloadCompleted removes it and starts the next.
-            // Index > 0 is queued only: remove from the list.
-            if (index == 0)
-            {
-                downloadHandler.Abort(downloadHandler.Downloads[0]);
-            }
-            else
-            {
-                downloadHandler.removeDownloadAtIndex(index);
-            }
+            downloadHandler.Cancel(downloadHandler.Downloads[index]);
         }
 
         private void downloadsDataGridView_SelectionChanged(object sender, EventArgs e)
@@ -428,6 +419,7 @@ namespace DesktopStreamDownloader
             // Show Options as Dialog
             OptionsForm optionsForm = new OptionsForm();
             optionsForm.ShowDialog();
+            downloadHandler.FillSlots();
         }
 
         private void resultsGrid_CellDoubleClick(object sender, DataGridViewCellEventArgs e)

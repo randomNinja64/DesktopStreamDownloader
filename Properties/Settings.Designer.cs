@@ -46,5 +46,17 @@ namespace DesktopStreamDownloader.Properties {
                 this["DefaultQuality"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int MaxConcurrentDownloads {
+            get {
+                return ((int)(this["MaxConcurrentDownloads"]));
+            }
+            set {
+                this["MaxConcurrentDownloads"] = value;
+            }
+        }
     }
 }

@@ -30,7 +30,10 @@ namespace DesktopStreamDownloader
         {
             this.qualityLbl = new System.Windows.Forms.Label();
             this.qualityComboBox = new System.Windows.Forms.ComboBox();
+            this.concurrentLbl = new System.Windows.Forms.Label();
+            this.concurrentNum = new System.Windows.Forms.NumericUpDown();
             this.okBtn = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.concurrentNum)).BeginInit();
             this.SuspendLayout();
             // 
             // qualityLbl
@@ -60,14 +63,45 @@ namespace DesktopStreamDownloader
             this.qualityComboBox.Size = new System.Drawing.Size(152, 21);
             this.qualityComboBox.TabIndex = 1;
             // 
+            // concurrentLbl
+            // 
+            this.concurrentLbl.AutoSize = true;
+            this.concurrentLbl.Location = new System.Drawing.Point(9, 52);
+            this.concurrentLbl.Name = "concurrentLbl";
+            this.concurrentLbl.Size = new System.Drawing.Size(163, 13);
+            this.concurrentLbl.TabIndex = 2;
+            this.concurrentLbl.Text = "Maximum Downloads at a &Time:";
+            // 
+            // concurrentNum
+            // 
+            this.concurrentNum.Location = new System.Drawing.Point(12, 68);
+            this.concurrentNum.Maximum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.concurrentNum.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.concurrentNum.Name = "concurrentNum";
+            this.concurrentNum.Size = new System.Drawing.Size(48, 20);
+            this.concurrentNum.TabIndex = 3;
+            this.concurrentNum.Value = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            // 
             // okBtn
             // 
             this.okBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.okBtn.Location = new System.Drawing.Point(12, 58);
+            this.okBtn.Location = new System.Drawing.Point(12, 100);
             this.okBtn.Name = "okBtn";
             this.okBtn.Size = new System.Drawing.Size(152, 23);
-            this.okBtn.TabIndex = 2;
+            this.okBtn.TabIndex = 4;
             this.okBtn.Text = "&Save";
             this.okBtn.UseVisualStyleBackColor = true;
             this.okBtn.Click += new System.EventHandler(this.okBtn_Click);
@@ -77,8 +111,10 @@ namespace DesktopStreamDownloader
             this.AcceptButton = this.okBtn;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(176, 93);
+            this.ClientSize = new System.Drawing.Size(200, 135);
             this.Controls.Add(this.okBtn);
+            this.Controls.Add(this.concurrentNum);
+            this.Controls.Add(this.concurrentLbl);
             this.Controls.Add(this.qualityComboBox);
             this.Controls.Add(this.qualityLbl);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -89,6 +125,7 @@ namespace DesktopStreamDownloader
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "Options";
             this.Load += new System.EventHandler(this.OptionsForm_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.concurrentNum)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -98,6 +135,8 @@ namespace DesktopStreamDownloader
 
         private System.Windows.Forms.Label qualityLbl;
         private System.Windows.Forms.ComboBox qualityComboBox;
+        private System.Windows.Forms.Label concurrentLbl;
+        private System.Windows.Forms.NumericUpDown concurrentNum;
         private System.Windows.Forms.Button okBtn;
     }
 }
