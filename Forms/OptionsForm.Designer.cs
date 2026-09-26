@@ -60,7 +60,7 @@ namespace DesktopStreamDownloader
             "1080p"});
             this.qualityComboBox.Location = new System.Drawing.Point(12, 25);
             this.qualityComboBox.Name = "qualityComboBox";
-            this.qualityComboBox.Size = new System.Drawing.Size(152, 21);
+            this.qualityComboBox.Size = new System.Drawing.Size(176, 21);
             this.qualityComboBox.TabIndex = 1;
             // 
             // concurrentLbl
@@ -100,7 +100,7 @@ namespace DesktopStreamDownloader
             | System.Windows.Forms.AnchorStyles.Right)));
             this.okBtn.Location = new System.Drawing.Point(12, 100);
             this.okBtn.Name = "okBtn";
-            this.okBtn.Size = new System.Drawing.Size(152, 23);
+            this.okBtn.Size = new System.Drawing.Size(176, 23);
             this.okBtn.TabIndex = 4;
             this.okBtn.Text = "&Save";
             this.okBtn.UseVisualStyleBackColor = true;
@@ -118,6 +118,7 @@ namespace DesktopStreamDownloader
             this.Controls.Add(this.qualityComboBox);
             this.Controls.Add(this.qualityLbl);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "OptionsForm";
