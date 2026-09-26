@@ -118,7 +118,6 @@ namespace DesktopStreamDownloader
             this.Controls.Add(this.qualityComboBox);
             this.Controls.Add(this.qualityLbl);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "OptionsForm";
