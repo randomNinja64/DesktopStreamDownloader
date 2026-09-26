@@ -83,7 +83,7 @@ namespace DesktopStreamDownloader
         {
             foreach (Download download in Downloads)
             {
-                if (FindRunning(download) == null && !FileNameRunning(download.fileName))
+                if (!FileNameRunning(download.fileName))
                 {
                     return download;
                 }
@@ -159,9 +159,7 @@ namespace DesktopStreamDownloader
             }
             catch
             {
-                job.Active = false;
-                _running.Remove(job);
-                youtubedlprocess.Dispose();
+                RemoveRunning(job);
                 throw;
             }
         }

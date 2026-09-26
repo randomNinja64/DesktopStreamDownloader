@@ -5,20 +5,13 @@ namespace DesktopStreamDownloader
 {
     public class Download : INotifyPropertyChanged
     {
-        private Uri DownloadUrl;
-        private string FileName;
         private string DownloadStatus;
         private string DownloadProgress;
-        private bool Overwrite;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         // Create properties
-        public Uri downloadUrl
-        {
-            get { return DownloadUrl; }
-            set { DownloadUrl = value; }
-        }
+        public Uri downloadUrl { get; set; }
         public string downloadStatus
         {
             get { return DownloadStatus; }
@@ -45,22 +38,14 @@ namespace DesktopStreamDownloader
                 OnPropertyChanged("downloadProgress");
             }
         }
-        public string fileName
-        {
-            get { return FileName; }
-            set { FileName = value; }
-        }
-        public bool overwrite
-        {
-            get { return Overwrite; }
-            set { Overwrite = value; }
-        }
+        public string fileName { get; set; }
+        public bool overwrite { get; set; }
 
         public Download(Uri downloadUrl, string fileName, bool overwrite)
         {
-            DownloadUrl = downloadUrl;
-            FileName = fileName;
-            Overwrite = overwrite;
+            this.downloadUrl = downloadUrl;
+            this.fileName = fileName;
+            this.overwrite = overwrite;
         }
 
         private void OnPropertyChanged(string propertyName)

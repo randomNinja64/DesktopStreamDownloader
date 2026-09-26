@@ -443,7 +443,7 @@ namespace DesktopStreamDownloader
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(563, 378);
             this.Name = "MainForm";
-            this.Text = "DesktopStreamDownloader 1.3.5";
+            this.Text = "DesktopStreamDownloader 1.4.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.controlTabs.ResumeLayout(false);

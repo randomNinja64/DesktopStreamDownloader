@@ -2,7 +2,7 @@
 ; Built by build.bat when makensis is available.
 
 !define PRODUCT_NAME "DesktopStreamDownloader"
-!define PRODUCT_VERSION "1.3.5"
+!define PRODUCT_VERSION "1.4.0"
 !define PRODUCT_PUBLISHER "randomNinja64"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\DesktopStreamDownloader.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
