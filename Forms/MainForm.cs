@@ -14,7 +14,7 @@ namespace DesktopStreamDownloader
 
         private BackgroundWorker searchWorker;
         private string currentThumbnailId = "";
-        private bool searchInProgress = false;
+        private bool searchInProgress;
         private Dictionary<string, Image> thumbnailCache = new Dictionary<string, Image>();
 
         public MainForm()

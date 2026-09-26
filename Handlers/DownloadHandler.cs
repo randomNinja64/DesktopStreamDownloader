@@ -33,7 +33,7 @@ namespace DesktopStreamDownloader
         public DownloadHandler(MainForm form)
         {
             frm = form;
-            this.Downloads = new BindingList<Download>();
+            Downloads = new BindingList<Download>();
         }
 
         // Function to Add Download. Returns false when the user declines an overwrite.
