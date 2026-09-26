@@ -57,10 +57,10 @@ namespace DesktopStreamDownloader
                 resultsNum = 200;
             }
 
-            string ytDlpPath = Path.Combine(Application.StartupPath, "yt-dlp.exe");
+            string ytDlpPath = Path.Combine(Application.StartupPath, Program.YtDlpExecutableName);
             if (!File.Exists(ytDlpPath))
             {
-                errorMessage = "Error 01: yt-dlp.exe was not found. Please ensure it is placed in the same folder as the application.";
+                errorMessage = "Error 01: " + Program.YtDlpExecutableName + " was not found. Please ensure it is placed in the same folder as the application.";
                 return null;
             }
 

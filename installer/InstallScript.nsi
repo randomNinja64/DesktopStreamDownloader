@@ -39,6 +39,7 @@ Section "MainSection" SEC01
   File /nonfatal "${DIST_DIR}\curl.exe"
   File /nonfatal "${DIST_DIR}\curl-ca-bundle.crt"
   File /nonfatal "${DIST_DIR}\yt-dlp.exe"
+  File /nonfatal "${DIST_DIR}\yt-dlp-xp.exe"
   File /nonfatal "${DIST_DIR}\ffmpeg.exe"
   File /nonfatal /r "${DIST_DIR}\THIRD_PARTY_LICENSES"
   CreateDirectory "$SMPROGRAMS\DesktopStreamDownloader"
@@ -78,6 +79,7 @@ Section Uninstall
   Delete "$INSTDIR\curl.exe"
   Delete "$INSTDIR\curl-ca-bundle.crt"
   Delete "$INSTDIR\yt-dlp.exe"
+  Delete "$INSTDIR\yt-dlp-xp.exe"
   Delete "$INSTDIR\ffmpeg.exe"
   RMDir /r "$INSTDIR\THIRD_PARTY_LICENSES"
 

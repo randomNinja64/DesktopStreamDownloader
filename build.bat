@@ -26,6 +26,7 @@ echo Packaging optional dependencies ...
 call :CopyIfExists "%ROOT%deps\curl.exe" "%OUT%\curl.exe"
 call :CopyIfExists "%ROOT%deps\curl-ca-bundle.crt" "%OUT%\curl-ca-bundle.crt"
 call :CopyIfExists "%ROOT%deps\yt-dlp.exe" "%OUT%\yt-dlp.exe"
+call :CopyIfExists "%ROOT%deps\yt-dlp-xp.exe" "%OUT%\yt-dlp-xp.exe"
 call :CopyIfExists "%ROOT%deps\ffmpeg.exe" "%OUT%\ffmpeg.exe"
 
 :: Optional third-party license texts

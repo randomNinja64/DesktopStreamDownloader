@@ -7,6 +7,17 @@ namespace DesktopStreamDownloader
 {
     internal static class Program
     {
+        internal static string YtDlpExecutableName
+        {
+            get
+            {
+                return Environment.OSVersion.Platform == PlatformID.Win32NT
+                    && Environment.OSVersion.Version.Major == 5
+                    && Environment.OSVersion.Version.Minor == 1
+                    ? "yt-dlp-xp.exe" : "yt-dlp.exe";
+            }
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -28,7 +39,7 @@ namespace DesktopStreamDownloader
 
         private static string MissingDependencyMessage()
         {
-            string[] required = new string[] { "yt-dlp.exe", "curl.exe", "ffmpeg.exe" };
+            string[] required = new string[] { YtDlpExecutableName, "curl.exe", "ffmpeg.exe" };
             StringBuilder missing = new StringBuilder();
             foreach (string name in required)
             {

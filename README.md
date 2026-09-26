@@ -17,7 +17,7 @@ DesktopStreamDownloader is a desktop application designed to search and download
 
 ## Building
 
-To build the release version of the project, place the required executables (`curl.exe`, `curl-ca-bundle.crt`, `yt-dlp.exe`, and `ffmpeg.exe`) in the `deps` folder and use the `build.bat` script (Visual Studio/Visual Studio Build Tools/MSBuild required). If [NSIS](https://nsis.sourceforge.io/) is installed, `build.bat` also produces `DesktopStreamDownloader Setup.exe`.
+To build the release version of the project, place the required executables (`curl.exe`, `curl-ca-bundle.crt`, `yt-dlp.exe`, `yt-dlp-xp.exe`, and `ffmpeg.exe`) in the `deps` folder and use the `build.bat` script (Visual Studio/Visual Studio Build Tools/MSBuild required). The application uses `yt-dlp-xp.exe` on Windows XP and `yt-dlp.exe` otherwise. If [NSIS](https://nsis.sourceforge.io/) is installed, `build.bat` also produces `DesktopStreamDownloader Setup.exe`.
 
 Alternatively, the project can be built directly in Visual Studio; however, the needed dependencies won't be packaged.
 
